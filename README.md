@@ -1,3 +1,5 @@
+# ** This is Paige Duffin's class project repository**
+
 # Overview
 
 A template file and folder structure for a data analysis project/paper done with R/Rmarkdown/Github. 

@@ -1,6 +1,6 @@
 ---
 title: "Paige Duffin Data Analysis Project"
-subtitle: "Insert Descriptive Title"
+subtitle: "Working title- will give proper title later"
 author: Paige Duffin
 institute: "University of Georgia"
 date: "`r Sys.Date()`"
@@ -16,44 +16,23 @@ csl: ../apa.csl
 # Summary/Abstract
 _Write a summary of your project._
 
-# Illustrating setup
-_This section is only there to show how to insert results from other places in the project and how to cite figures and other references. Delete this whole section at some point._
-
-
-This paper [@Leek2015a] discusses types of analyses. 
-
-
-Figure \@ref(fig:resultfigure) shows a result figure from the analysis.
-
-```{r resultfigure,  fig.cap='Analysis figure.', echo=FALSE}
-knitr::include_graphics("../../results/resultfigure.png")
-```
-
-Table \@ref(tab:resulttable) shows a result table from the analysis.
-
-```{r resulttable,  echo=FALSE}
-resulttable=readRDS("../../results/resulttable.rds")
-knitr::kable(resulttable, caption = 'Result Table.')
-```
-
-
-Note that this cited reference will show up at the end of the document, the reference formatting is determined by the CSL file specified in the YAML header. Many more style files for almost any journal [are available](https://www.zotero.org/styles). You also specify the location of your bibtex reference file in the YAML. You can call your reference file anything you like, I just used the generic word `references.bib` but giving it a more descriptive name is probably better.
-
-
 # Introduction (required for part 1)
 
 ## General Background Information
 Outbreaks of infectious disease are an important, yet poorly understood, driving force in population biology and, while prevalent in both terrestrial and marine systems, the manner by which outbreaks influence biotic relationships, age demographics, community structure and function, and trophic interactions in the aquatic realm consistently lags behind that of terrestrial disease ecology. The growing body of evidence in this field, however, supports the observation that marine disease epidemics are increasing in frequency and severity (Orth et al., 2006; Waycott et al., 2009). Elucidating the relationship between aquatic species and their pathogenic diseases is pertinent in the field of marine ecology because infection outbreaks have the potential to drastically alter ecosystem functionality (Blakesley et al., 2002; Burge et al., 2013). Many of the organisms which have faced chronic and/or severe outbreaks of disease (such as sea urchins, scleractinian corals and seagrasses) are also considered keystone species and/or ecosystem engineers, meaning that they contribute highly valuable services or functions to their surrounding community and ecosystem. Thus, it comes as no surprise that disease-driven mass mortalities of these species often generate waves of ecological permutation, ranging from temporary local disruptions to permanent phase shifts (Burge et al., 2013), such as the transformation from a coral to macroalgal dominated Caribbean reef structure that accompanied the massive _Diadema antillarum_ (black sea urchin) die-off of the early 1980s (Lessios et al., 1984; Lessios, 1988). This event, likely caused by a biological pathogen (Schultz et al., 2016), reduced Diadema populations to less than 1% of their original size (Lessios, 1988). Mass mortality events impacting critical foundation species, ecosystem engineers, or keystone species such as the black sea urchin have been coined ‘marine disease emergencies’ due to the detrimental cascade of events that often succeeds them (Miner et al., 2018). 
 
-Sea Star Wasting Disease (SSWD) is another epizootic crisis facing modern day coastal ecosystems. Outbreaks of asteroid wasting have been documented periodically since the late 1970s and SSWD describes a suite of symptoms observed across a broad range of sea star species, most of which play integral parts in shaping their community structure. Generally speaking, the wasting disease events which punctuated the past four decades were relatively brief, in localized areas, and largely failed to capture the attention of the scientific community. Beginning in summer 2013, however, mass mortalities of sea stars due to wasting disease have caused unprecedented damage, owing to the geographical and temporal extent of impact. This ongoing epizootic, which has killed millions of asteroids across over 20 taxa, is widely referred to as the largest disease event sweeping through a wildlife marine species in documented history (Hewson et al. 2014, Gudenkauf & Hewson, 2015, Eisenlord et al., 2016). 
+Sea Star Wasting Disease (SSWD) is another epizootic crisis facing modern day coastal ecosystems. Outbreaks of asteroid wasting have been documented periodically since the late 1970s and SSWD describes a suite of symptoms observed across a broad range of sea star species, most of which play integral parts in shaping their community structure. Generally speaking, the wasting disease events which punctuated the past four decades were relatively brief, in localized areas, and largely failed to capture the attention of the scientific community. Beginning in summer 2013, however, mass mortalities of sea stars due to wasting disease have caused unprecedented damage, owing to the geographical and temporal extent of impact. This ongoing epizootic, which has killed millions of asteroids across over 20 taxa, is widely referred to as the largest disease event sweeping through a wildlife marine species in documented history (Hewson et al. 2014, Gudenkauf & Hewson, 2015, Eisenlord et al. 2016). 
 
 
 ## Description of data and data source
 _Describe what the data is, what it contains, where it is from, etc._
 
+### The Source
 The vast majority of disease documentation and surveys cover the west coast of the United States. While it is almost certainly true that SSWD is most prevalent in this region, there is a strong bias towards the discovery of diseased organisms owing to the emphasis of long-term survey networks in the area, such as the extensive [Multi-Agency Rocky Intertidal Network](https://marine.ucsc.edu/index.html) (MARINe for short). The vast majority of what we know about SSWD dynamics comes from studies along the Pacific Coast of North America using data produced through the combined effort of dedicated scientists, government agencies, and local citizens. The purpose of this investigation is to make use of this data monitoring system to investigate spatial and temoporal changes in sea star abundance along the west coast of the United States. 
 
-More specifically, I will be using the following data file:
+### The Data
+Below I explore the raw data I downloaded from a link I recieved after submitting a request for the data on the MARINe webpage.
+
 ```{r}
 library(readr)
 raw_SS_count <- read.csv("~/Documents/GitHub/PaigeDuffin-Project/data/raw_data/seastarkat_size_count_totals_download.csv")
@@ -61,7 +40,6 @@ head(raw_SS_count, 3)
 levels(raw_SS_count$georegion)
 levels(raw_SS_count$species_code)
 ```
-This is the raw download from a link I recieved after submitting a request for the data.
 
 Notably, it contains the following information (some parameters removed from this overview): 
 
@@ -71,30 +49,49 @@ Notably, it contains the following information (some parameters removed from thi
 * `marine_season_code`: A four-character code to identify the Sampling season. The first two characters indicate the season and the last 2 characters indicate the year.
 * `method_code`: The method used for sampling the plot. 
 * `size_bin`: The size of the species being counted, binned to the nearest 5 or 10 millimeter.
+* `target_assemblage`: The specific organism that this transect was created to monitor.
 * `total`: Total number of individuals counted in a given size_bin
 * `mpa_designation`: Describes whether the referenced site is located within a Marine Protected Area (MPA) or is a reference site. If this field is blank, the referenced site is not located within an MPA, or is not a reference site for an existing MPA site.
 * `georegion`/ `bioregion`: geographic/biogeographic region in which site is located
 * `state_province`: The State or Province and Country where the referenced site is located.
 * `island`: The name of the island where the referenced site is located. Sites not on islands are designated as mainland.
 
+### Additional Data Sources 
+I believe I have more data coming in to work with. I recieved an email today from a representative of the Multi-Agency Rocky Intertidal Network. This email said:
 
-Note: I believe I have more data coming in to work with. I recieved an email today from a representative of the Multi-Agency Rocky Intertidal Network. This email said: 
-> "You should have been able to download our sea star size/count data from the data download page that you were directed to after filling out the data request form. We also have associated disease category data, but because we only sample 1x per year at most sites, this additional info will not give you an idea of disease emergence or progression within a site or region. You might also be interested in our observation data set, which would be better for these types of questions. We can have this data to you within about a week."
+> _"You should have been able to download our sea star size/count data from the data download page that you were directed to after filling out the data request form. We also have associated disease category data, but because we only sample 1x per year at most sites, this additional info will not give you an idea of disease emergence or progression within a site or region. You might also be interested in our observation data set, which would be better for these types of questions. We can have this data to you within about a week."_
 
-I'm very interested in this disease data, but don't know what it will look like. Hopefully, I can incorporate this into my analysis, but for right now I am going to focus on outlining the questions I can answer with the data I have in hand. 
+I'm also interested in environmental data such as sea surface temperature, dissolved oxygen, salinity, etc., as SSWD is thought to be exacerbated by abiotic stressors. However, I'm having a difficult time finding data to use that will pair reasonably well with the dates and locations of the `raw_SS_count` data I know I will be working with. 
+
+I'm very interested in this disease and environmental data, but don't know what it will look like or if it will be feasible to use. Hopefully, I can incorporate this into my analysis, but for right now I am going to focus on outlining the questions I can answer with the data I have in hand. 
 
 ## Questions/Hypotheses to be addressed
 _State the research questions you plan to answer with this analysis_
 
-Primary Questions:
-1.
+**1. Are sea star populations changing over time?** 
+I anticipate that there will be a decline in sea star populations over time, but that the change will not occur uniformly across geographical regions and species. Species that are reported to have been affected by SSWD will experience the biggest declines. 
 
-Secondary Questions:
-1. **
-2. *Is there evidence of sampling bias?*
+**2. Is species composition uniform across space?**
+I expect to be able to define rough species ranges. 
 
-Questions I may be able to answer with disease data:
-1. 
+**3. Is there evidence of sampling bias?**
+  Is there a relationship between important survey parameters (mainly, abundance data) and sampling method (ex. group conducting the survey, plot sampling method, the target assemblage). At the very least, I expect there will be bias based on the targeted organism of the survey; if a given survey aims to characterize the presence of one species of sea stars, it is likely that they will seek out that species and record higher counts. 
+
+### Questions I may be able to answer with disease and/or environmental data:
+
+**1. Is there a relationship between sea star abundance over time and prevalence of SSWD?**
+There absolutely should be a relationship, based on the body of evidence presented on studies that have focused on individual species. 
+
+**2. Are there species of sea stars that are more affected by disease than others?**
+The literature implies that this may be the case, but there also may be a bias based on species that researchers are more interested in. 
+
+**3. Are there regions that are more affected by disease than others, regardless of species?**
+The most recent epidemic appears to be so widespread that I suspect there won't be any significant trends here, but it's certainly worth checking.  
+
+**4. Is there a relationship between sea star wasting disease and dissolved oxygen levels?**
+A recent, but leading hypothesis in the field of SSWD suggests that it may be triggered specifically by low oxygen conditions. I'm very interested in exploring relationships between SSWD and DO levels- this is actually the main curiosity that lead me to focus in on this data set. 
+
+**5. Is there a relationship between sea star wasting disease and [other water quality parameters I'm able to find data for]?**
 
 
 # Methods and Results

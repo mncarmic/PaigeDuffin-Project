@@ -1,4 +1,4 @@
-# ** This is Paige Duffin's class project repository**
+# This is Paige Duffin's class project repository
 
 # Overview
 

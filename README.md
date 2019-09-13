@@ -1,5 +1,11 @@
 # This is Paige Duffin's class project repository
 
+# Part 1 (due September 13, 2019):
+Please find my work for part 1 of the project in two PaigeDuffin-Project repository locations:
+
+1. `data` > `raw-data` contains the `.csv` file I intend to use for my analysis. It remains untouched after being downloaded off the internet (see manuscript for details)
+2. `products` > `manuscript` contains several items, but most importantly, a `.docx` file (`PaigeDuffin-Project-Manuscript.docx`) with the relevant parts filled out for my submission for part 1. 
+
 # Overview
 
 A template file and folder structure for a data analysis project/paper done with R/Rmarkdown/Github. 

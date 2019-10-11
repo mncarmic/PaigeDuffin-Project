@@ -34,7 +34,7 @@ Below I explore the raw data I downloaded from a link I recieved after submittin
 
 ```{r}
 library(readr)
-raw_SS_count <- read.csv("~/Documents/GitHub/PaigeDuffin-Project/data/raw_data/seastarkat_size_count_totals_download.csv")
+raw_SS_count <- read.csv("./data/raw_data/seastarkat_size_count_totals_download.csv")
 head(raw_SS_count, 3)
 levels(raw_SS_count$georegion)
 levels(raw_SS_count$species_code)

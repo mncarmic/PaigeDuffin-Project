@@ -1,5 +1,10 @@
 # This is Paige Duffin's class project repository
 
+# Part 2 (due October 11, 2019):
+Please find my work for part 2 of the project in the PaigeDuffin-Project repository, in the main directory, in a file called `PaigeDuffin-Project-working_progress.Rmd`, under the second tab within the file (I've named it such that it should be clear). 
+
+I had ample frustrations and troubles with this assignment. The actual Rmd file contains more information on what I specifically struggled with. 
+
 # Part 1 (due September 13, 2019):
 Please find my work for part 1 of the project in two PaigeDuffin-Project repository locations:
 

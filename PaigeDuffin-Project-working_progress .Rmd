@@ -3,12 +3,7 @@ title: "Paige Duffin Data Analysis Project"
 subtitle: "Working title- will give proper title later"
 author: Paige Duffin
 institute: "University of Georgia"
-date: "`r Sys.Date()`"
-site: bookdown::bookdown_site
-documentclass: article
 output: html_document
-bibliography: ../references.bib
-csl: ../apa.csl
 ---
 
 # Organizing this into tabs for the time being {.tabset}

@@ -1,0 +1,342 @@
+---
+title: "Exploratory_Analysis"
+author: "Paige Duffin"
+date: "11/4/2019"
+output: html_document
+---
+
+### Exploring Study Sites
+
+Load necessary packages
+```{r}
+library(caret) # Classification and Regression Training
+library(corrplot)
+library(dplyr) # A Grammar of Data Manipulations
+library(forcats) # Tools for Working with Categorical Variables (Factors)
+library(gdata) # Various R Programming Tools for Data Manipulation
+library(ggplot2) # Create Elegant Data Visualizations Using the Grammar of Graphics
+library(ggrepel) # Automatically Position Non-Overlapping Text Labels with ‘ggplot2’
+library(ggridges) # Ridgeline Plots in ‘ggplot2’
+library(ggthemes) # Extra Themes, Scales, and Geoms for ‘ggplot2’
+library(gmodels) # Various R Programming Tools for Model Fitting
+library(grid) # The Grid Graphics Package
+library(gridExtra)
+library(knitr) # A General-Purpose Package for Dynamic Report Generation in R
+library(lmtest) # Testing Linear Regression Models
+library(plyr) # Tools for Splitting, Applying and Combining Data
+library(purrr) # Functional Programming Tools
+library(readr) # Read Rectangular Text Data
+library(rpart)
+library(rattle)
+library(scales) # Scale Functions for Visualization
+library(shiny) # Web Application Framework for R
+library(skimr) # Compact and Flexible Summaries of Data
+library(stringr) # Simple, Consistent Wrappers for Common String Operations
+library(tibble) # Simple Data Frames
+library(tidyr) # Easily Tidy Data with ‘spread()’ and ‘gather()’ Functions
+library(tidyverse) # Install and Load ‘Tidyverse’ Packages
+library(usmap)
+library(rworldmap)
+library(ggmap)
+library(maps)
+library(mapdata)
+library(cowplot)
+library("googleway")
+library("ggspatial") 
+library("rnaturalearth") 
+library("rnaturalearthdata")
+theme_set(theme_bw())
+library("sf")
+library(gridExtra)
+
+world <- ne_countries(scale = "medium", returnclass = "sf") #for mapping
+```
+
+Load cleaned data
+```{r}
+clean_data <- readRDS("../../data/processed_data/processeddata.rds")
+skim(clean_data)
+```
+
+#### Overall histogram of counts per sample survey
+```{r}
+clean_data %>% ggplot() + 
+  geom_histogram(aes(total))
+```
+
+#### Create new data frame that just lists each site once 
+```{r}
+unique_sites <- subset(clean_data, !duplicated(clean_data$site_code)) 
+#names(unique_sites)
+sites_coordinates <- unique_sites[c(2,5:6,23)]
+sites_coordinates_contig <- filter(sites_coordinates, sites_coordinates$state != "Alaska") 
+#sites_coordinates
+CA_coordinates <- filter(sites_coordinates, sites_coordinates$state == "CA")
+OR_coordinates <- filter(sites_coordinates, sites_coordinates$state == "OR")
+WA_coordinates <- filter(sites_coordinates, sites_coordinates$state == "WA")
+AK_coordinates <- filter(sites_coordinates, sites_coordinates$state == "AK")
+
+CA_coordinates <- as.data.frame(CA_coordinates)
+OR_coordinates <- as.data.frame(OR_coordinates)
+WA_coordinates <- as.data.frame(WA_coordinates)
+AK_coordinates <- as.data.frame(AK_coordinates)
+```
+
+---
+
+#### Plot sample sites
+After messing around with several different mapping tools in R, I decided that trying to display the whole range (CA to AK) on one map would be really hard, and the Alaska sites are really just at one specific location, so I'm going to split Alaska off from the three states that are part of the contiguous US
+
+#### Plot AK sites
+```{r}
+world <- ne_countries(scale = "medium", returnclass = "sf")
+AK_zoom1 <- ggplot(data = world) +
+    geom_sf() +
+  geom_point(data= sites_coordinates,aes(x=sites_coordinates$longitude, y=sites_coordinates$latitude,), size = 2, alpha = 0.4) +
+  annotation_scale(location = "bl", width_hint = 0.3) +
+  coord_sf(xlim = c(-170, -128), ylim = c(54, 72), expand = FALSE) + 
+  xlab("Longitude") + 
+  ylab("Latitude") + 
+  scale_x_continuous(breaks = c(-160, -150, -140))
+  
+
+AK_zoom2 <- ggplot(data = world) +
+    geom_sf() +
+  geom_point(data= sites_coordinates,aes(x=sites_coordinates$longitude, y=sites_coordinates$latitude,), size = 2, alpha = 0.4) +
+  annotation_scale(location = "bl", width_hint = 0.3) +
+  coord_sf(xlim = c(-144, -130), ylim = c(55, 62), expand = FALSE) + 
+  xlab("Longitude") + 
+  ylab("Latitude") + 
+  scale_x_continuous(breaks = c(-142, -138, -134))
+  
+grid.arrange(AK_zoom1, AK_zoom2, ncol = 2)
+```
+
+#### Plot WA, OR, and CA sites
+```{r}
+State <- sites_coordinates_contig$state
+ggplot(data = world) +
+    geom_sf() +
+  geom_jitter(data= sites_coordinates_contig,aes(x=sites_coordinates_contig$longitude, y=sites_coordinates_contig$latitude,col=State), size = 2, alpha = 0.6, width = 0.2) +
+  annotation_scale(location = "bl", width_hint = 0.3) +
+  coord_sf(xlim = c(-128, -115), ylim = c(32, 49.5), expand = FALSE) + 
+  xlab("Longitude") + 
+  ylab("Latitude")
+```
+
+
+---
+---
+
+### Exploring Count Data by State and Year Surveyed
+#### What does the structure of the data look like by state?
+#### CA
+```{r}
+CA <- clean_data %>% select(marine_site_name, marine_common_year, size_bin, total, state) %>%
+  filter(state == "CA")
+summary(CA)
+```
+
+#### OR
+```{r}
+OR <- clean_data %>% select(marine_site_name, marine_common_year, size_bin, total, state) %>%
+  filter(state == "OR")
+summary(OR)
+```
+
+#### WA
+```{r}
+WA <- clean_data %>% select(marine_site_name, marine_common_year, size_bin, total, state) %>%
+  filter(state == "WA")
+summary(WA)
+```
+
+#### AK
+```{r}
+AK <- clean_data %>% select(marine_site_name, marine_common_year, size_bin, total, state) %>%
+  filter(state == "AK")
+summary(AK)
+```
+
+[INSERT TABLE SUMMARIZING THIS INFORMATION]
+
+---
+
+#### What does sea star abundance over time look like? 
+```{r}
+clean_data %>% ggplot(aes(marine_common_year, total)) +  geom_jitter(width = 0.15, alpha = 0.25)
+```
+
+#### Lets color the points by state 
+```{r}
+clean_data %>% ggplot(aes(marine_common_year, total, col=state)) +  geom_jitter(width = 0.15, alpha = 0.25)
+```
+Woah, California is dominating this visualization. 
+
+#### Lets break that up into 4 parts:
+```{r}
+clean_data %>%   
+  ggplot(aes(marine_common_year, total, col=state)) +  geom_jitter(width = 0.15, alpha = 0.25) +
+  facet_wrap(~state)
+```
+Washington and Alaska clearly weren't surveyed for all years during which California and Oregon were. 
+
+#### What do these counts look like if we display them as log()?
+```{r}
+clean_data %>%   
+  ggplot(aes(marine_common_year, log(total), col=state)) +  geom_jitter(width = 0.15, alpha = 0.25) +
+  facet_wrap(~state)
+```
+
+---
+
+#### Abundance over time
+```{r}
+clean_data %>% ggplot(aes(marine_common_year, log(total), group = marine_common_year)) + geom_boxplot()
+```
+
+---
+
+#### So far I've been looking at this across all 3 species of sea stars surveyed. What does the last graph look like for each species, seperately? 
+#### Summary statistics for each species over time
+```{r}
+P.ochra_only <- filter(clean_data, species_code == "P.ochraceus")
+K.tuni_only <- filter(clean_data, species_code == "K.tunicata")
+E.tros_only <- filter(clean_data, species_code == "E.troschelii")
+skim(P.ochra_only)
+skim(K.tuni_only)
+skim(E.tros_only)
+```
+
+#### Species abundance over time
+```{r}
+P.ochra_only %>% ggplot(aes(marine_common_year, log(total), group = marine_common_year)) + geom_boxplot()
+```
+
+```{r}
+K.tuni_only %>% ggplot(aes(marine_common_year, log(total), group = marine_common_year)) + geom_boxplot()
+```
+
+```{r}
+E.tros_only %>% ggplot(aes(marine_common_year, log(total), group = marine_common_year)) + geom_boxplot()
+```
+That last one looked like the log() function might not be applicable. Let's see what it looks like without that:
+```{r}
+E.tros_only %>% ggplot(aes(marine_common_year, total, group = marine_common_year)) + geom_boxplot()
+```
+
+---
+
+#### Characterizing sea star abundance in the last decade 
+The most recent and catastrophic sea star wasting disease outbreak hit the west coast of North America around 2013. How did sea star abundance look before the epidemic, how did it change during the epidemic, and have the populations rebounded? 
+
+```{r}
+last_decade <- filter(clean_data, marine_common_year >= "2010")
+last_decade %>% ggplot(aes(marine_common_year, log(total), group = marine_common_year)) + geom_boxplot()
+```
+It looks like populations leveled back out at 2016 and remained relatively unchanged in 2017 and 2018. 
+
+---
+
+#### Narrowing the time frame under analysis
+It looks like theres a detectable decrease between 2013 and 2014, and that populations leveled back out at 2016 and remained relatively unchanged in 2017 and 2018. Lets narrow the time frame to only include sampling between 2013 and 2016. 
+```{r}
+last_decade$marine_common_year <- as.factor(last_decade$marine_common_year)
+SSWD_timeframe <- filter(clean_data, marine_common_year >= "2013" & marine_common_year <= "2016")
+SSWD_timeframe$marine_common_year <- as.factor(SSWD_timeframe$marine_common_year)
+SSWD_timeframe %>% ggplot(aes(marine_common_year, log(total), group = marine_common_year, col=marine_common_year)) + geom_boxplot()
+```
+
+#### By state
+```{r}
+SSWD_timeframe %>% ggplot(aes(marine_common_year, log(total), group = marine_common_year, col=marine_common_year)) + geom_boxplot() +   facet_wrap(~state, 1) + theme(legend.position = "none")
+```
+
+---
+
+#### Fitting a linear model
+```{r}
+SSWD_timeframe %>% ggplot(aes(marine_common_year, log(total), col=state)) +  geom_jitter(width = 0.45, alpha = 0.25) +
+  facet_wrap(~state, 1) + geom_smooth(method = "lm", col="black") + theme(legend.position = "none")
+```
+
+#### Just California
+```{r}
+SSWD_timeframe_CA <- filter(SSWD_timeframe, state == "CA")
+SSWD_timeframe_CA$marine_common_year <- as.factor(SSWD_timeframe_CA$marine_common_year)
+SSWD_timeframe_CA %>% ggplot(aes(marine_common_year, log(total), col=marine_common_year)) +  geom_jitter(width = 0.5, alpha = 0.25) + geom_smooth(method = "lm", col="red") + theme(legend.position = "none")
+```
+
+---
+
+#### Doing the same as above, but separating by species, with a primary focus on Pisaster ochraceus (the organism I'm studing in my research)
+```{r}
+SSWD_timeframe_P.ochra <- filter(P.ochra_only, marine_common_year >= "2013" & marine_common_year <= "2016")
+
+SSWD_timeframe_P.ochra$marine_common_year <- as.factor(SSWD_timeframe_P.ochra$marine_common_year)
+
+SSWD_timeframe_P.ochra %>% ggplot(aes(marine_common_year, log(total), group = marine_common_year, col=marine_common_year)) + geom_boxplot() +   facet_wrap(~state, 1) + theme(legend.position = "none")
+```
+
+```{r}
+SSWD_timeframe_K.tuni <- filter(K.tuni_only, marine_common_year >= "2013" & marine_common_year <= "2016")
+
+SSWD_timeframe_K.tuni$marine_common_year <- as.factor(SSWD_timeframe_K.tuni$marine_common_year)
+
+SSWD_timeframe_K.tuni %>% ggplot(aes(marine_common_year, log(total), group = marine_common_year, col=marine_common_year)) + geom_boxplot() +   facet_wrap(~state, 1) + theme(legend.position = "none")
+```
+
+```{r}
+SSWD_timeframe_E.tros <- filter(E.tros_only, marine_common_year >= "2013" & marine_common_year <= "2016")
+
+SSWD_timeframe_E.tros$marine_common_year <- as.factor(SSWD_timeframe_E.tros$marine_common_year)
+
+SSWD_timeframe_E.tros %>% ggplot(aes(marine_common_year, log(total), group = marine_common_year, col=marine_common_year)) + geom_boxplot() +   facet_wrap(~state, 1) + theme(legend.position = "none")
+```
+OH! I didn't catch that the reason why E.tros had such few survey sightings was because its range appears to only be in Alaska. Speaking of which....
+
+---
+
+#### I should go back and plot each survey entry and color by species observed to get an idea of the ranges of each. 
+```{r}
+Species <- SSWD_timeframe$species_code
+broad_jitter <- ggplot(data = world) +
+    geom_sf() +
+  geom_jitter(data= SSWD_timeframe,aes(x=SSWD_timeframe$longitude, y=SSWD_timeframe$latitude,col=Species), size = 2, alpha = 0.3, width = 3) +
+  annotation_scale(location = "bl", width_hint = 0.3) +
+  coord_sf(xlim = c(-128, -115), ylim = c(32, 49.5), expand = FALSE) + 
+  xlab("Longitude") + 
+  ylab("Latitude")
+
+narrow_jitter <- ggplot(data = world) +
+    geom_sf() +
+  geom_jitter(data= SSWD_timeframe,aes(x=SSWD_timeframe$longitude, y=SSWD_timeframe$latitude,col=Species), size = 2, alpha = 0.3, width = 0.3) +
+  annotation_scale(location = "bl", width_hint = 0.3) +
+  coord_sf(xlim = c(-128, -115), ylim = c(32, 49.5), expand = FALSE) + 
+  xlab("Longitude") + 
+  ylab("Latitude")
+
+gridExtra::grid.arrange(broad_jitter,narrow_jitter,nrow=2)
+```
+
+```{r}
+AK_zoom1_SSWD <- ggplot(data = world) +
+    geom_sf() +
+  geom_point(data= SSWD_timeframe,aes(x=SSWD_timeframe$longitude, y=SSWD_timeframe$latitude,col=Species,), size = 2, alpha = 0.4) +
+  annotation_scale(location = "bl", width_hint = 0.3) +
+  coord_sf(xlim = c(-140, -130), ylim = c(55, 62), expand = FALSE) + 
+  xlab("Longitude") + 
+  ylab("Latitude") 
+  
+
+AK_zoom2_SSWD <- ggplot(data = world) +
+    geom_sf() +
+  geom_point(data= SSWD_timeframe,aes(x=SSWD_timeframe$longitude, y=SSWD_timeframe$latitude,col=Species,), size = 2, alpha = 0.4) +
+  annotation_scale(location = "bl", width_hint = 0.3) +
+  coord_sf(xlim = c(-136, -135), ylim = c(56.6, 57.3), expand = FALSE) + 
+  xlab("Longitude") + 
+  ylab("Latitude") 
+  
+grid.arrange(AK_zoom1_SSWD, AK_zoom2_SSWD, nrow = 2)
+```
+

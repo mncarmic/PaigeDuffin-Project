@@ -1,15 +1,8 @@
 ---
-title: "Processing"
+title: "Processing_Updated"
 author: "Paige Duffin"
 date: "11/3/2019"
 output: html_document
----
-
----
-title: "Pisaster Abundance"
-output:
-  html_document:
-    df_print: paged
 ---
 
 ```{r message=FALSE}
@@ -318,13 +311,137 @@ unique(SS_count18$marine_sort_order)
 SS_count18 %>% ggplot2::ggplot() + geom_histogram(aes(marine_sort_order))
 ```
 
+Let me create a new data frame that will serve as a key, telling me which number corresponds to each site.
 ```{r}
 unique_sites_code <- subset(SS_count18, !duplicated(SS_count18$marine_sort_order)) 
 # skim(unique_sites_code)
 # names(unique_sites_code) # want to keep columns 2, 3, 4, 5, 6
 unique_sites_code1 <- unique_sites_code[c(2,3,4,5,6)]
 #unique_sites_code1
-ordered_sites_code_key <- unique_sites_code1
+numeric_sites_code_key <- unique_sites_code1
 ```
 
-^^ Can use that data frame later to decode! 
+^^ Can use that data frame later to decode!
+
+Next, `marine_common_season`
+```{r}
+unique(SS_count18$marine_common_season)
+SS_count18 %>% ggplot2::ggplot() + geom_histogram(aes(marine_common_season))
+```
+Not intuitive what this variable means, though I think I have an idea based on how they made an integer out of the sites... Lets look at the documentation. It says: "Consecutive sampling number. A code created to allow sequencing of the seasons, used for sorting data in chronological order."
+
+Yes, that's pretty much what I figured. Again, lets make a key to use later. 
+```{r}
+unique_seasons_code <- subset(SS_count18, !duplicated(SS_count18$marine_common_season)) 
+# unique_seasons_code
+skim(unique_seasons_code)
+# pretty sure this can be coded by `marine_season_code` column. 
+# names(unique_seasons_code) # want to keep columns 7 and 8
+unique_seasons_code1 <- unique_seasons_code[c(7,8)]
+numeric_seasons_code_key <- unique_seasons_code1
+```
+
+
+Next, `marine_common_year`
+```{r}
+unique(SS_count18$marine_common_year)
+SS_count18 %>% ggplot2::ggplot() + geom_histogram(aes(marine_common_year))
+```
+
+Next, `season_sequence`
+```{r}
+#SS_count <- SS_count
+unique(SS_count18$season_sequence)
+SS_count18 %>% ggplot2::ggplot() + geom_histogram(aes(season_sequence))
+```
+Another way of describing season. Lets make a key.
+```{r}
+unique_season_sequence <- subset(SS_count18, !duplicated(SS_count18$season_sequence)) 
+#unique_season_sequence
+#names(unique_season_sequence) # want to keep columns 10 and 11
+unique_season_sequence1 <- unique_season_sequence[c(10,11)]
+season_sequence_key <- unique_season_sequence1
+```
+
+Next, `species_code`
+```{r}
+#SS_count <- SS_count
+unique(SS_count18$species_code)
+# wait, this should absolutely be a factor, not an integer? 
+typeof(SS_count18$species_code)
+# Oh, it is a character. Somehow I missed this going through the characters(turned factors), but my numbering will mess up if I put it up there. Just dealing with it here. 
+SS_count18 %>% ggplot2::ggplot() + geom_bar(aes(species_code))
+```
+Two things:  
+* Change names to just be the actual species names.. this isn't saving that much space and the all-caps is annoying me. 
+* Very skewed towards PISOCH. Make a new variable that is PISOCH vs other. 
+
+Changing names
+```{r}
+SS_count19 <- SS_count18
+SS_count19 <- SS_count19 %>% mutate(species_code = recode(species_code, "PISOCH" = "P.ochraceus", "KATTUN" = "K.tunicata", "EVATRO" = "E.troschelii"))
+SS_count19$species_code <- as.factor(SS_count19$species_code)
+SS_count19 %>% ggplot2::ggplot() + geom_bar(aes(species_code))
+```
+Actually, regarding that second point... in looking up the species names associated with the above species codes, I discovered K. tunicata is actually a chiton... I honestly had no idea! I thought (assumed) all three spp. were sea stars. It doesn't make biological sense to group E.troschelii and K.tunicata together as "other" when E.troschelii and P. ochraceus have more in common biologically... and making a new group of all sea stars vs not sea stars will just make the data more skewed... thus, I'm not going to partition this variable any more. 
+
+Next, `size_sort_order`
+```{r}
+unique(SS_count19$size_sort_order)
+SS_count19 %>% ggplot2::ggplot() + geom_histogram(aes(size_sort_order))
+```
+
+What does this variable mean again? Documentation for `size_sort_order` says: "Numerical code used for sorting size_bin" ...and for `size_bin` it says: "The size of the species being counted, binned to the nearest 5 or 10 millimeter."
+
+Okay lets skip ahead and look at `size_bin`
+```{r}
+#SS_count <- SS_count
+unique(SS_count19$size_bin)
+SS_count19 %>% ggplot2::ggplot() + geom_histogram(aes(size_bin))
+```
+
+Okay... but this is likely to vary A LOT by species (prior knowledge tells me E.troschelii is, on average, way smaller than P.ochraceus)
+```{r}
+SS_count19 %>% ggplot(aes(species_code, size_bin, col = species_code)) + geom_jitter(width = 0.3, alpha = 0.25) + geom_boxplot() 
+```
+Just as I suspected- the sizes aren't similar among species. If my model analyzes size_bin and there is an effect of size but only in P.ochraceus, won't all the low values for the other two species mess with that when not accounting for interactions between these two variables? 
+
+I'm going move on, but will keep this in mind.... I may end up re-running my models on P.ochraceus data only, as its really what I'm interested in.. but we'll see. 
+
+Oh- and both `size_sort_order` and `size_bin` look good. 
+
+Next, `total`
+```{r}
+unique(SS_count19$total)
+summary(SS_count19$total)
+SS_count19 %>% ggplot2::ggplot() + geom_histogram(aes(total))
+```
+
+Looks good to me. This is the shape I would expect of an abundance distribution. 
+
+## Doubles/Numeric
+`latitude` & `longitude` are the only two numeric variables
+```{r}
+unique(SS_count19$latitude)
+SS_count19 %>% ggplot2::ggplot() + geom_histogram(aes(latitude))
+```
+
+Longitude
+```{r}
+unique(SS_count19$longitude)
+SS_count19 %>% ggplot2::ggplot() + geom_histogram(aes(longitude))
+```
+
+Okay, everything looks good! 
+
+Lets take a final look, then rename and save the data.
+```{r}
+clean_data <- SS_count19
+skim(clean_data)
+```
+
+Save the data as an RDS.
+```{r}
+saveRDS(clean_data, file = "../../data/processed_data/processeddata.rds")
+```
+

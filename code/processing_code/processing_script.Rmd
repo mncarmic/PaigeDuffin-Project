@@ -1,0 +1,330 @@
+---
+title: "Processing"
+author: "Paige Duffin"
+date: "11/3/2019"
+output: html_document
+---
+
+---
+title: "Pisaster Abundance"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r message=FALSE}
+library(caret) # Classification and Regression Training
+library(corrplot)
+library(dplyr) # A Grammar of Data Manipulations
+library(forcats) # Tools for Working with Categorical Variables (Factors)
+library(gdata) # Various R Programming Tools for Data Manipulation
+library(ggplot2) # Create Elegant Data Visualizations Using the Grammar of Graphics
+library(ggrepel) # Automatically Position Non-Overlapping Text Labels with ‘ggplot2’
+library(ggridges) # Ridgeline Plots in ‘ggplot2’
+library(ggthemes) # Extra Themes, Scales, and Geoms for ‘ggplot2’
+library(gmodels) # Various R Programming Tools for Model Fitting
+library(grid) # The Grid Graphics Package
+library(gridExtra)
+library(knitr) # A General-Purpose Package for Dynamic Report Generation in R
+library(lmtest) # Testing Linear Regression Models
+library(plyr) # Tools for Splitting, Applying and Combining Data
+library(purrr) # Functional Programming Tools
+library(readr) # Read Rectangular Text Data
+library(rpart)
+library(rattle)
+library(scales) # Scale Functions for Visualization
+library(shiny) # Web Application Framework for R
+library(skimr) # Compact and Flexible Summaries of Data
+library(stringr) # Simple, Consistent Wrappers for Common String Operations
+library(tibble) # Simple Data Frames
+library(tidyr) # Easily Tidy Data with ‘spread()’ and ‘gather()’ Functions
+library(tidyverse) # Install and Load ‘Tidyverse’ Packages
+library(usmap)
+library(rworldmap)
+library(ggmap)
+library(maps)
+library(mapdata)
+library(cowplot)
+library("googleway")
+library("ggspatial") 
+library("rnaturalearth") 
+library("rnaturalearthdata")
+theme_set(theme_bw())
+library("sf")
+```
+
+```{r}
+raw_SS_count <- read.csv("../../data/raw_data/seastarkat_size_count_totals_download.csv")
+SS_count <- raw_SS_count
+```
+
+```{r}
+SS_count$group_code <- as.character(SS_count$group_code)
+SS_count$site_code <- as.character(SS_count$site_code)
+SS_count$marine_site_name <- as.character(SS_count$marine_site_name)
+SS_count$marine_season_code <- as.character(SS_count$marine_season_code)
+SS_count$season_name <- as.character(SS_count$season_name)
+SS_count$target_assemblage <- as.character(SS_count$target_assemblage)
+SS_count$method_code <- as.character(SS_count$method_code)
+SS_count$species_code <- as.character(SS_count$species_code)
+SS_count$mpa_designation <- as.character(SS_count$mpa_designation)
+SS_count$mpa_region <- as.character(SS_count$mpa_region)
+SS_count$georegion <- as.character(SS_count$georegion)
+SS_count$bioregion <- as.character(SS_count$bioregion)
+SS_count$state_province <- as.character(SS_count$state_province)
+SS_count$island <- as.character(SS_count$island)
+SS_count$last_updated <- as.character(SS_count$last_updated)
+glimpse(SS_count)
+```
+
+```{r}
+skim(SS_count)
+```
+
+View all variables
+```{r}
+names(SS_count)
+```
+
+Examine each variable- characters first
+```{r}
+unique(SS_count$group_code)
+SS_count %>% ggplot2::ggplot() + geom_bar(aes(group_code))
+```
+Hmmm, very biased towards UCSC. Maybe I should make an additional group_code that is UCSC vs Other
+```{r}
+SS_count1 <- SS_count %>% mutate(group_code_UCSC_other = recode(group_code, "CSUF" = "Other", "FEIRO" = "Other", "OCNMS" = "Other", "PBNERR" = "Other", "SSSC" = "Other", "UCLA" = "Other", "UCSB" = "Other", "UW" = "Other"))
+skim(SS_count1$group_code_UCSC_other)
+SS_count1$group_code <- as.factor(SS_count1$group_code)
+SS_count1$group_code_UCSC_other <- as.factor(SS_count1$group_code_UCSC_other)
+```
+
+Now `site_code`
+```{r}
+unique(SS_count1$site_code)
+SS_count1 %>% ggplot2::ggplot() + geom_bar(aes(site_code))
+SS_count2 <- SS_count1
+SS_count2$site_code <- as.factor(SS_count1$site_code)
+```
+
+Now `marine_site_name`
+```{r}
+SS_count3 <- SS_count2
+unique(SS_count3$marine_site_name)
+SS_count3 %>% ggplot2::ggplot() + geom_bar(aes(marine_site_name))
+SS_count3$marine_site_name <- as.factor(SS_count3$marine_site_name)
+```
+
+One site name has a weird space after it- fixing that
+```{r}
+SS_count3 <- SS_count3 %>% mutate(marine_site_name = recode(marine_site_name, "McDonald Cove; Hood Canal " = "McDonald Cove; Hood Canal"))
+#unique(SS_count3$marine_site_name) #double check to make sure that worked
+SS_count3$marine_site_name <- as.factor(SS_count3$marine_site_name)
+```
+
+Now `marine_season_code`
+```{r}
+SS_count4 <- SS_count3
+unique(SS_count4$marine_season_code)
+SS_count4 %>% ggplot2::ggplot() + geom_bar(aes(marine_season_code))
+SS_count4$marine_season_code <- as.factor(SS_count4$marine_season_code)
+```
+Kinda weird to have this var, when this info is already contained in the `season_name`, and `marine_common_year` vars, but it could be useful, and there appear to be no issues with it, so I'll leave it for now.....
+
+Well, it does show information in this graph that is very interesting and allows for a timeline at a finer scale than by year. Actually, this looks very informative! 
+
+Now `season_name`
+```{r}
+SS_count5 <- SS_count4
+unique(SS_count5$season_name)
+SS_count5 %>% ggplot2::ggplot() + geom_bar(aes(season_name))
+SS_count5$season_name <- as.factor(SS_count5$season_name)
+```
+
+Now `target_assemblage`
+```{r}
+SS_count6 <- SS_count5
+unique(SS_count6$target_assemblage)
+SS_count6 %>% ggplot2::ggplot() + geom_bar(aes(target_assemblage))
+```
+
+Okay, so this analysis revealed that this variable is completelly uninformative, because its always the same target. Deleting this variable.  
+```{r}
+SS_count6 <- SS_count6[-c(12)]
+#names(SS_count6) #just checking
+```
+
+Now `method_code`
+```{r}
+SS_count7 <- SS_count6
+unique(SS_count7$method_code)
+SS_count7 %>% ggplot2::ggplot() + geom_bar(aes(method_code))
+```
+
+Same story as `group_code`... very disproportionate. Doing the same thing as before- adding a new variable that is the most common method () vs "Other"
+```{r}
+SS_count7 <- SS_count7 %>% mutate(method_code_IP_other = recode(method_code, "TS30" = "Other", "GSES" = "Other", "BT25" = "Other"))
+skim(SS_count7$method_code_IP_other)
+SS_count7$method_code_IP_other <- as.factor(SS_count7$method_code_IP_other)
+SS_count7$method_code <- as.factor(SS_count7$method_code)
+```
+
+Now `mpa_designation`
+```{r}
+SS_count8 <- SS_count7
+unique(SS_count8$mpa_designation)
+SS_count8 %>% ggplot2::ggplot() + geom_bar(aes(mpa_designation))
+```
+
+These designations aren't intuitive... let me see what the code says.. 
+> `mpa_designation`: Describes whether the referenced site is located within a Marine Protected Area (MPA) or is a reference site. If this field is blank, the referenced site is not located within an MPA, or is not a reference site for an existing MPA site.
+
+That doesn't really help me understand these levels because I don't know what a reference site is (even after a Google investigation). If this ends up being an important predictor in my model later, I will try to understand better what these categories mean. 
+
+Changing to a factor and moving on.
+```{r}
+SS_count8$mpa_designation <- as.factor(SS_count8$mpa_designation)
+```
+
+Now `mpa_region`
+```{r}
+SS_count9 <- SS_count8
+unique(SS_count9$mpa_region)
+SS_count9 %>% ggplot2::ggplot() + geom_bar(aes(mpa_region))
+```
+
+Shouldn't the number of `NULL` entries in this variable (`mpa_region`) match the number of `NULL` entries in the last variable I looked at (`mpa_designation`)? What's going on? 
+```{r}
+NULL_mpa_designation <- SS_count9 %>% select(names(SS_count9)) %>% filter(mpa_designation == "NULL")
+NULL_mpa_designation %>% ggplot2::ggplot() + geom_bar(aes(mpa_region))
+
+NULL_mpa_region <- SS_count9 %>% select(names(SS_count9)) %>% filter(mpa_region == "NULL")
+NULL_mpa_region %>% ggplot2::ggplot() + geom_bar(aes(mpa_designation))
+```
+
+I don't understand why some of the values for `mpa_designation` are labeled as not associated with an MPA (`NULL`) but their corresponding `mpa_region` is associated with a region. 
+
+Because I see that all "NULL" `mpa_region`s are also "NULL" in the `mpa_designation` variable, but not all "NULL" `mpa_designations`s are also "NULL" in the `mpa_region` variable, it seems, at the very least, the `mpa_region` category is more informative. And, on top of that, these categories make sense to me, unlike those of the `mpa_designation` variable. Therefore, I'm making the decision to remove the `mpa_designation` variable from all downstream analyses. I have plenty of interesting variables to still work with (but if, for some reason, nothing is interesting in the models I run, I can always come back and add this variable back in, although it seems unlikely that `mpa_designation` would be an interesting predictor if I'd already determined that `mpa_region` weren't). 
+
+Removing the `mpa_designation` variable and changing `mpa_region` to a factor. 
+```{r}
+# names(SS_count9) # determined that `mpa_designation` var is column 17
+SS_count10 <- SS_count9[-c(17)]
+SS_count10$mpa_region <- as.factor(SS_count10$mpa_region)
+# names(SS_count10) #just checking that it worked
+```
+
+Now `georegion`
+```{r}
+SS_count11 <- SS_count10
+unique(SS_count11$georegion)
+SS_count11 %>% ggplot2::ggplot() + geom_bar(aes(georegion))
+```
+
+Very disproportionate.. but informative, and I don't know of a way to make it more evenly spread. 
+```{r}
+SS_count11$georegion <- as.factor(SS_count11$georegion)
+```
+
+Now `bioregion`
+```{r}
+SS_count12 <- SS_count11
+unique(SS_count12$bioregion)
+SS_count12 %>% ggplot2::ggplot() + geom_bar(aes(bioregion))
+```
+
+Some of these names are really long.. I'm going to abbreviate where I can. 
+```{r}
+SS_count12 <- SS_count12 %>% mutate(bioregion = recode(bioregion, "Government Point to Mexico" = "GovtPt_2_Mexico", "WA Olympic Coast to San Francisco" = "OlyCstWA_2_SanFran", "San Francisco to Government Point" = "SanFran_2_GovtPt", "Channel Islands South" = "ChannelIsl_South", "WA Salish Sea" = "SalishSea_WA", "Alaska to British Columbia" = "AK_2_BritColumb"))
+# unique(SS_count12$bioregion) #double checking
+SS_count12$bioregion <- as.factor(SS_count12$bioregion)
+```
+
+Now `state_province`
+```{r}
+SS_count13 <- SS_count12
+unique(SS_count13$state_province)
+SS_count13 %>% ggplot2::ggplot() + geom_bar(aes(state_province))
+```
+
+Just going to change these to the state abbreviations- personal preference. Also, there are no provinces in this variable, so renaming the variable to make more sense. 
+```{r}
+SS_count13 <- SS_count13 %>% mutate(state = recode(state_province, "Alaska" = "AK", "Washington" = "WA", "Oregon" = "OR", "California" = "CA"))
+#unique(SS_count13$state) #double checking
+SS_count13$state <- as.factor(SS_count13$state)
+
+# Removing old variable
+# names(SS_count13) # determined that `state_province` var is column 20
+SS_count14 <- SS_count13[-c(20)]
+# names(SS_count14) #just checking that it worked
+```
+
+Now `island`
+```{r}
+SS_count15 <- SS_count14
+unique(SS_count15$island)
+SS_count15 %>% ggplot2::ggplot() + geom_bar(aes(island))
+```
+
+What does "NULL" mean in this situation? 
+```{r}
+NULL_island <- SS_count15 %>% select(names(SS_count15)) %>% filter(island == "NULL")
+NULL_island
+
+#NULL_mpa_designation %>% ggplot2::ggplot() + geom_bar(aes(mpa_region))
+```
+
+Its always at the same site: "McDonald Cove; Hood Canal" (site_code: "HOO"), so it must mean SOMETHING.. but what? Let me look at the documentation. It says, "The name of the island where the referenced site is located. Sites not on islands are designated as mainland." 
+
+Okay, so there's no good reason why this site has "NULL". Let me see if there are entries at this site where it isn't "NULL". 
+```{r}
+HOO_site <- SS_count15 %>% select(names(SS_count15)) %>% filter(site_code == "HOO")
+unique(HOO_site$island)
+```
+Okay, so its only ever been "NULL" for this site in the `island` variable. I'll have to figure out for myself if this site is on an island or not.... googling now... 
+
+Oh wow! Through this, I discovered the site that I downloaded this data from has detailed information on these collection sites... [here](https://marine.ucsc.edu/sitepages/mcdonaldcove.html). May use this information later... but for now, I used google maps to find this location. Its on the mainland- specifically on the Olympic Penninsula. 
+Okay, cool. Mystery solved. Recoding it as "mainland." 
+```{r}
+SS_count15 <- SS_count15 %>% mutate(island = recode(island, "NULL" = "Mainland"))
+unique(SS_count15$island)
+SS_count15$island <- as.factor(SS_count15$island)
+```
+
+Now `last_updated`
+```{r}
+SS_count16 <- SS_count15
+unique(SS_count16$last_updated)
+SS_count16 %>% ggplot2::ggplot() + geom_bar(aes(last_updated))
+```
+
+Okay, as suspected, its completely uninformative as a future predictor variable. Removing it. 
+```{r}
+# names(SS_count16) # determined that `last_updated` var is column 21
+SS_count17 <- SS_count16[-c(21)]
+# names(SS_count17) #just checking that it worked
+```
+
+## Integers
+First, `marine_sort_order`. I don't even know what this means, intuitively. What does the documentation say? 
+
+"Used to order the sites geographically along the coast. Actual values are arbitrary, and should not be used for site identification."
+
+Oh, interesting. That could actually be useful! 
+
+```{r}
+SS_count18 <- SS_count17
+unique(SS_count18$marine_sort_order)
+SS_count18 %>% ggplot2::ggplot() + geom_histogram(aes(marine_sort_order))
+```
+
+```{r}
+unique_sites_code <- subset(SS_count18, !duplicated(SS_count18$marine_sort_order)) 
+# skim(unique_sites_code)
+# names(unique_sites_code) # want to keep columns 2, 3, 4, 5, 6
+unique_sites_code1 <- unique_sites_code[c(2,3,4,5,6)]
+#unique_sites_code1
+ordered_sites_code_key <- unique_sites_code1
+```
+
+^^ Can use that data frame later to decode! 

@@ -7,35 +7,42 @@
 #load needed packages. make sure they are installed.
 library(readxl)
 library(dplyr)
+library(readr)
 
 #load data. path is relative to project directory.
-rawdata <- readxl::read_excel("./data/raw_data/exampledata.xlsx")
+raw_SS_count <- readxl::read_excel("./data/raw_data/exampledata.xlsx")
+raw_SS_count <- read.csv("./data/raw_data/seastarkat_size_count_totals_download.csv")
+head(raw_SS_count, 3)
+levels(raw_SS_count$georegion)
+levels(raw_SS_count$species_code)
 
 #take a look at the data
-dplyr::glimpse(rawdata)
+dplyr::glimpse(raw_SS_count)
+head(raw_SS_count, 3)
+levels(raw_SS_count$georegion)
+levels(raw_SS_count$species_code)
 
-# looks like we have measurements for height (in centimeters) and weight (in kilogram)
+# change many of the variables from factors to characters, at least for now
+SS_count <- raw_SS_count
+SS_count$group_code <- as.character(SS_count$group_code)
+SS_count$site_code <- as.character(SS_count$site_code)
+SS_count$marine_site_name <- as.character(SS_count$marine_site_name)
+SS_count$marine_season_code <- as.character(SS_count$marine_season_code)
+SS_count$season_name <- as.character(SS_count$season_name)
+SS_count$target_assemblage <- as.character(SS_count$target_assemblage)
+SS_count$method_code <- as.character(SS_count$method_code)
+SS_count$species_code <- as.character(SS_count$species_code)
+SS_count$mpa_designation <- as.character(SS_count$mpa_designation)
+SS_count$mpa_region <- as.character(SS_count$mpa_region)
+SS_count$georegion <- as.character(SS_count$georegion)
+SS_count$bioregion <- as.character(SS_count$bioregion)
+SS_count$state_province <- as.character(SS_count$state_province)
+SS_count$island <- as.character(SS_count$island)
+SS_count$last_updated <- as.character(SS_count$last_updated)
 
-# there are some problems with the data: 
-# There is an entry which says "sixty" instead of a number. 
-# Does that mean it should be a numeric 60? It somehow doesn't make
-# sense since the weight is 60kg, which can't happen for a 60cm person (a baby)
-# Since we don't know how to fix this, we need to remove the person.
-# This "sixty" entry also turned all Height entries into characters instead of numeric.
-# We need to fix that too.
-# Then there is one person with a height of 6. 
-# that could be a typo, or someone mistakenly entered their height in feet.
-# Since we unfortunately don't know, we'll have to remove this person.
-# similarly, there is a person with weight of 7000, which is impossible,
-# and one person with missing weight.
-# to be able to analyze the data, we'll remove those 5 individuals
+glimpse(SS_count)
+skim(SS_count)
 
-# this is one way of doing it. Note that if the data gets updated, 
-# we need to decide if the thresholds are ok (newborns could be <50)
+#save as RDS file
+saveRDS(SS_count, file = "./data/processed_data/")
 
-processeddata <- rawdata %>% dplyr::filter( Height != "sixty" ) %>% 
-  mutate_all(type.convert) %>% 
-  dplyr::filter(Height > 50 & Weight < 1000)
-
-#save data as RDS
-saveRDS(cleandata, file = "./data/processed_data/processeddata.rds")

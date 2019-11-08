@@ -1,6 +1,6 @@
 ---
 title: "Paige Duffin Data Analysis Project"
-subtitle: "Working title- will give proper title later"
+subtitle: "Trends in Sea Star Abundance on the US West Coast"
 author: Paige Duffin
 institute: "University of Georgia"
 date: "`r Sys.Date()`"
@@ -31,10 +31,13 @@ What I have done (if _italicized_, its a work in progress):
 * Figured out how to save files into their correct location and call them in other scripts. This is something that I couldn't figure out how to do on the last assignment so I'm proud of myself for working through it.
 
 What I haven't yet done:
+
 * Write abstract
 * Write final introduction
 * Write discussion
 * Figure out how to use Bibtek
+
+Considering how utterly lost and frustrated I was as I submitted my last portion of this project, I am very pleased with where I am at and now feel as if I can actually succeed in completing this project. Thank you for reducing the workload in other aspects of this course so that I could take (and will continue to take) the time I need to really understand how to create a fully reproducible project like this. I can't BELIEVE how far I've come since the beginning of this semester. 
 
 # Summary/Abstract
 _Write a summary of your project._

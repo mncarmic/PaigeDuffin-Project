@@ -82,8 +82,11 @@ names(SS_count)
 Examine each variable- characters first
 ```{r}
 unique(SS_count$group_code)
-SS_count %>% ggplot2::ggplot() + geom_bar(aes(group_code))
+group_code_histogram <- SS_count %>% ggplot2::ggplot() + geom_bar(aes(group_code))
+group_code_histogram
+ggsave(filename = "../../results/Processing_results/group_code_histogram.png",plot = group_code_histogram, width = 5, height = 4) 
 ```
+
 Hmmm, very biased towards UCSC. Maybe I should make an additional group_code that is UCSC vs Other
 ```{r}
 SS_count1 <- SS_count %>% mutate(group_code_UCSC_other = recode(group_code, "CSUF" = "Other", "FEIRO" = "Other", "OCNMS" = "Other", "PBNERR" = "Other", "SSSC" = "Other", "UCLA" = "Other", "UCSB" = "Other", "UW" = "Other"))
@@ -319,6 +322,7 @@ unique_sites_code <- subset(SS_count18, !duplicated(SS_count18$marine_sort_order
 unique_sites_code1 <- unique_sites_code[c(2,3,4,5,6)]
 #unique_sites_code1
 numeric_sites_code_key <- unique_sites_code1
+saveRDS(numeric_sites_code_key, file = "../../data/processed_data/numeric_sites_code_key.rds")
 ```
 
 ^^ Can use that data frame later to decode!
@@ -339,6 +343,8 @@ skim(unique_seasons_code)
 # names(unique_seasons_code) # want to keep columns 7 and 8
 unique_seasons_code1 <- unique_seasons_code[c(7,8)]
 numeric_seasons_code_key <- unique_seasons_code1
+
+saveRDS(numeric_seasons_code_key, file = "../../data/processed_data/numeric_seasons_code_key.rds")
 ```
 
 
@@ -361,6 +367,8 @@ unique_season_sequence <- subset(SS_count18, !duplicated(SS_count18$season_seque
 #names(unique_season_sequence) # want to keep columns 10 and 11
 unique_season_sequence1 <- unique_season_sequence[c(10,11)]
 season_sequence_key <- unique_season_sequence1
+
+saveRDS(season_sequence_key, file = "../../data/processed_data/season_sequence_key.rds")
 ```
 
 Next, `species_code`

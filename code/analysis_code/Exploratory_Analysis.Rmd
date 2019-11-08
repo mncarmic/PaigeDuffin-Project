@@ -105,7 +105,7 @@ AK_map <- ggplot(data = world) +
 
 AK_map 
 
-ggsave(filename = "../../results/AK_sites_map.png",plot = AK_map, width = 3.5, height = 4) 
+ggsave(filename = "../../results/Exploratory_Analysis_results/AK_sites_map.png",plot = AK_map, width = 3.5, height = 4) 
 ```
 
 
@@ -130,7 +130,7 @@ CA_map <- ggplot(data = world) +
 
 CA_map
 
-ggsave(filename = "../../results/CA_sites_map.png",plot = CA_map, width = 3.5, height = 4) 
+ggsave(filename = "../../results/Exploratory_Analysis_results/CA_sites_map.png",plot = CA_map, width = 3.5, height = 4) 
 ```
 
 ```{r}
@@ -149,7 +149,7 @@ OR_map <- ggplot(data = world) +
 
 OR_map
 
-ggsave(filename = "../../results/OR_sites_map.png",plot = OR_map, width = 3.5, height = 4) 
+ggsave(filename = "../../results/Exploratory_Analysis_results/OR_sites_map.png",plot = OR_map, width = 3.5, height = 4) 
 ```
 
 ```{r}
@@ -169,7 +169,7 @@ WA_map <- ggplot(data = world) +
 
 WA_map 
 
-ggsave(filename = "../../results/WA_sites_map.png",plot = WA_map, width = 3.5, height = 4) 
+ggsave(filename = "../../results/Exploratory_Analysis_results/WA_sites_map.png",plot = WA_map, width = 3.5, height = 4) 
 ```
 
 ---
@@ -242,20 +242,33 @@ Washington and Alaska clearly weren't surveyed for all years during which Califo
 
 #### What do these counts look like if we display them as log()?
 ```{r}
-clean_data %>%   
+Abundance_State_Year_graphs <- clean_data %>%   
   ggplot(aes(marine_common_year, log(total), col=state)) +  geom_jitter(width = 0.15, alpha = 0.25) +
-  facet_wrap(~state)
+  facet_wrap(~state) +
+  xlab("Year") + ylab("log(Abundance)")
+```
+
+```{r}
+Abundance_State_Year_graphs
+
+ggsave(filename = "../../results/Exploratory_Analysis_results/Abundance_State_Year_graphs.png",plot = Abundance_State_Year_graphs, width = 5, height = 4) 
 ```
 
 ---
 
 #### Abundance over time
 ```{r}
-clean_data %>% ggplot(aes(marine_common_year, log(total), group = marine_common_year)) + 
+abundance_time_boxplots <- clean_data %>% ggplot(aes(marine_common_year, log(total), group = marine_common_year)) + 
   geom_boxplot(alpha = 0.4, fill = "grey67") +
   xlab("Year") + 
   ylab("log(Abundance)")  
+abundance_time_boxplots
 ```
+
+```{r}
+ggsave(filename = "../../results/Exploratory_Analysis_results/abundance_time_boxplots.png",plot = abundance_time_boxplots, width = 5, height = 4) 
+```
+
 
 ---
 
@@ -272,23 +285,31 @@ E.tros_only <- filter(clean_data, species_code == "E.troschelii")
 
 #### Species abundance over time
 ```{r}
-P.ochra_only %>% ggplot(aes(marine_common_year, log(total), group = marine_common_year)) + 
+P.ochra_only_boxplot <- P.ochra_only %>% ggplot(aes(marine_common_year, log(total), group = marine_common_year)) + 
   geom_boxplot(fill = "orchid4", alpha = 0.4) +
   xlab("Year") + 
   ylab("log(P.ochraceus Abundance)")  
+P.ochra_only_boxplot
+ggsave(filename = "../../results/Exploratory_Analysis_results/P.ochra_only_boxplot.png",plot = P.ochra_only_boxplot, width = 5, height = 4)
 ```
 
 ```{r}
-K.tuni_only %>% ggplot(aes(marine_common_year, log(total), group = marine_common_year)) + 
+K.tuni_only_boxplot <- K.tuni_only %>% ggplot(aes(marine_common_year, log(total), group = marine_common_year)) + 
   geom_boxplot(fill = "orange3", alpha = 0.4) +
   xlab("Year") + 
   ylab("log(K.tunicata Abundance)")  
+K.tuni_only_boxplot
+
+ggsave(filename = "../../results/Exploratory_Analysis_results/K.tuni_only_boxplot.png",plot = K.tuni_only_boxplot, width = 5, height = 4)
 ```
 
 ```{r}
-E.tros_only %>% ggplot(aes(marine_common_year, log(total), group = marine_common_year)) + geom_boxplot(fill = "skyblue3", alpha = 0.4) +
+E.tros_only_boxplot <- E.tros_only %>% ggplot(aes(marine_common_year, log(total), group = marine_common_year)) + geom_boxplot(fill = "skyblue3", alpha = 0.4) +
   xlab("Year") + 
   ylab("log(E.troschelii Abundance)")  
+E.tros_only_boxplot
+
+ggsave(filename = "../../results/Exploratory_Analysis_results/E.tros_only_boxplot.png",plot = E.tros_only_boxplot, width = 5, height = 4)
 ```
 
 That last one looked like the log() function might not be applicable. Let's see what it looks like without that:
@@ -320,9 +341,12 @@ It looks like theres a detectable decrease between 2013 and 2014, and that popul
 last_decade$marine_common_year <- as.factor(last_decade$marine_common_year)
 SSWD_timeframe <- filter(clean_data, marine_common_year >= "2013" & marine_common_year <= "2016")
 SSWD_timeframe$marine_common_year <- as.factor(SSWD_timeframe$marine_common_year)
-SSWD_timeframe %>% ggplot(aes(marine_common_year, log(total), group = marine_common_year)) + geom_boxplot(alpha = 0.4, fill = "grey67") +
+SSWD_timeframe_plot <- SSWD_timeframe %>% ggplot(aes(marine_common_year, log(total), group = marine_common_year)) + geom_boxplot(alpha = 0.4, fill = "grey67") +
   xlab("Year") + 
   ylab("log(Abundance)")
+SSWD_timeframe_plot
+
+ggsave(filename = "../../results/Exploratory_Analysis_results/SSWD_timeframe_plot.png",plot = SSWD_timeframe_plot, width = 5, height = 4)
 ```
 
 #### By species
@@ -336,23 +360,32 @@ E.tros_SSWD_tf <- filter(SSWD_timeframe, species_code == "E.troschelii")
 ```
 
 ```{r}
-P.ochra_SSWD_tf %>% ggplot(aes(marine_common_year, log(total), group = marine_common_year)) + 
+P.ochra_SSWD_tf_plot <- P.ochra_SSWD_tf %>% ggplot(aes(marine_common_year, log(total), group = marine_common_year)) + 
   geom_boxplot(fill = "orchid4", alpha = 0.4) +
   xlab("Year") + 
   ylab("log(P.ochraceus Abundance)")  
+P.ochra_SSWD_tf_plot
+
+ggsave(filename = "../../results/Exploratory_Analysis_results/P.ochra_SSWD_tf_plot.png",plot = P.ochra_SSWD_tf_plot, width = 5, height = 4)
 ```
 
 ```{r}
-K.tuni_SSWD_tf %>% ggplot(aes(marine_common_year, log(total), group = marine_common_year)) + 
+K.tuni_SSWD_tf_plot <- K.tuni_SSWD_tf %>% ggplot(aes(marine_common_year, log(total), group = marine_common_year)) + 
   geom_boxplot(fill = "orange3", alpha = 0.4) +
   xlab("Year") + 
   ylab("log(K.tunicata Abundance)")  
+K.tuni_SSWD_tf_plot
+
+ggsave(filename = "../../results/Exploratory_Analysis_results/K.tuni_SSWD_tf_plot.png",plot = K.tuni_SSWD_tf_plot, width = 5, height = 4)
 ```
 
 ```{r}
-E.tros_SSWD_tf %>% ggplot(aes(marine_common_year, log(total), group = marine_common_year)) + geom_boxplot(fill = "skyblue3", alpha = 0.4) +
+E.tros_SSWD_tf_plot <- E.tros_SSWD_tf %>% ggplot(aes(marine_common_year, log(total), group = marine_common_year)) + geom_boxplot(fill = "skyblue3", alpha = 0.4) +
   xlab("Year") + 
   ylab("log(E.troschelii Abundance)")  
+E.tros_SSWD_tf_plot
+
+ggsave(filename = "../../results/Exploratory_Analysis_results/E.tros_SSWD_tf_plot.png",plot = E.tros_SSWD_tf_plot, width = 5, height = 4)
 ```
 
 #### Breaking down years into sampling seasons
@@ -388,7 +421,9 @@ E.tros_SSWD_tf_fig
 ```
 
 ```{r}
-grid.arrange(P.ochra_SSWD_tf_fig, K.tuni_SSWD_tf_fig, nrow=2)
+Season_year_boxplot <- grid.arrange(P.ochra_SSWD_tf_fig, K.tuni_SSWD_tf_fig, nrow=2)
+Season_year_boxplot
+ggsave(filename = "../../results/Exploratory_Analysis_results/Season_year_boxplot.png",plot = grid.arrange(P.ochra_SSWD_tf_fig, K.tuni_SSWD_tf_fig, nrow=2), width = 5, height = 4)
 ```
 
 
@@ -396,6 +431,8 @@ grid.arrange(P.ochra_SSWD_tf_fig, K.tuni_SSWD_tf_fig, nrow=2)
 
 ```{r}
 P.ochra_SSWD_tf_fig + facet_wrap(~ state)
+ggsave(filename = "../../results/Exploratory_Analysis_results/P.ochra_SSWDtf_by_state.png",plot = P.ochra_SSWD_tf_fig + facet_wrap(~ state), width = 5, height = 4)
+
 ```
 
 ```{r}
@@ -409,7 +446,7 @@ P.ochra_SSWDtf_CA_fig <- P.ochra_SSWDtf_CA_fig + facet_wrap(~ marine_sort_order)
 ```
 
 ```{r}
-ggsave(filename = "../../results/P.ochra_SSWDtf_CA_fig.png",plot = P.ochra_SSWDtf_CA_fig, width = 5, height = 4) 
+ggsave(filename = "../../results/Exploratory_Analysis_results/P.ochra_SSWDtf_CA_fig.png",plot = P.ochra_SSWDtf_CA_fig, width = 5, height = 4) 
 ```
 
 
@@ -458,7 +495,7 @@ P.ochra_SSWDtf_over25_fig
 ```
 
 ```{r}
-ggsave(filename = "../../results/P.ochra_SSWDtf_over25_fig.png",plot = P.ochra_SSWDtf_over25_fig, width = 5, height = 4) 
+ggsave(filename = "../../results/Exploratory_Analysis_results/P.ochra_SSWDtf_over25_fig.png",plot = P.ochra_SSWDtf_over25_fig, width = 5, height = 4) 
 ```
 
 
@@ -479,8 +516,8 @@ P.ochra_SSWDtf_over40_fig <- P.ochra_SSWDtf_over40 %>% ggplot(aes(marine_common_
   xlab("Year") + 
   ylab("log(P.ochra Abundance)") 
 P.ochra_SSWDtf_over40_fig <- P.ochra_SSWDtf_over40_fig + facet_wrap(~ marine_sort_order, nrow =2)
-
-ggsave(filename = "../../results/P.ochra_SSWDtf_over40_fig.png",plot = P.ochra_SSWDtf_over40_fig, width = 5, height = 4)
+P.ochra_SSWDtf_over40_fig
+ggsave(filename = "../../results/Exploratory_Analysis_results/P.ochra_SSWDtf_over40_fig.png",plot = P.ochra_SSWDtf_over40_fig, width = 5, height = 4)
 ```
 
 

@@ -61,6 +61,8 @@ Creating dfs of color schemes I'll be using throughout
 mycolors <- c("brown1","lightseagreen","goldenrod1","slateblue")
 species_colors <- c("royalblue","salmon","darkmagenta")
 pisaster_colors <- c("thistle1","plum","orchid3","darkmagenta")
+pisaster_size_colors2 <- c("lightsteelblue1","skyblue","slateblue3","slateblue4")
+pisaster_size_colors <- c("lavender","mediumpurple3","slateblue3","slateblue4")
 ```
 
 Load cleaned data
@@ -733,11 +735,6 @@ SSWD_timeframe_P.ochra %>% ggplot(aes(size_bin, marine_common_year)) + geom_dens
 ```
 
 #### Would be useful to plot size_bin trends and abundance trends side by side
-Making new color palette for size bin plotting
-```{r}
-pisaster_size_colors2 <- c("lightsteelblue1","skyblue","slateblue3","slateblue4")
-pisaster_size_colors <- c("lavender","mediumpurple3","slateblue3","slateblue4")
-```
 
 ```{r}
 # Abundance plot

@@ -377,11 +377,6 @@ fit2 = caret::train(bioregion ~ ., data=data_train_subsetB, method="ranger", trC
 plot(fit2)
 ```
 
-```{r}
-?expand.grid
-```
-
-
 Boosted tree ensemble
 ```{r}
 library(gbm)

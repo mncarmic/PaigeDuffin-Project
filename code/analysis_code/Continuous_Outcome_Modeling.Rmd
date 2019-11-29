@@ -54,7 +54,7 @@ titletheme_small <- theme(plot.title = element_text(size=9,vjust=0.1))
 titletheme <- theme(plot.title = element_text(size=12,vjust=0.1))
 library("viridis")
 world <- ne_countries(scale = "medium", returnclass = "sf") #for mapping
-install.packages("tableone")
+#install.packages("tableone")
 library("tableone")
 ```
 
@@ -64,6 +64,8 @@ mycolors <- c("brown1","lightseagreen","goldenrod1","slateblue")
 species_colors <- c("royalblue","salmon","darkmagenta")
 pisaster_colors <- c("thistle1","plum","orchid3","darkmagenta")
 RMSE_colors <- c("slategray1","steelblue3","thistle2","plum3")
+pisaster_size_colors2 <- c("lightsteelblue1","skyblue","slateblue3","slateblue4")
+pisaster_size_colors <- c("lavender","mediumpurple3","slateblue3","slateblue4")
 ```
 
 Load cleaned data
@@ -184,8 +186,10 @@ resultmat_ordered <- resultmat %>%
   mutate(Variable = factor(Variable, levels = c("size_sort","longitude","latitude","order_site","year","season_year","season_num"))) %>%
   arrange(Variable) 
 resultmat_ordered$RMSE <- round(resultmat_ordered$RMSE,3)
+```
 
-Single_Predictor_RMSE <- resultmat_ordered %>% ggplot(aes(x = Variable, y=RMSE, label =RMSE)) + ylim(16.5,17.5) + geom_hline(yintercept=base_RMSE,color='red', size=2,linetype="dashed") +   geom_label(stat='identity',color="black", size=5, face="bold",fill="lightgrey") + theme(title = element_text(size=12), axis.title.y = element_text(size=14),axis.title.x = element_blank(),axis.text.y = element_text(size=12),axis.text.x = element_text(size=11)) + ggtitle("(A) Single Predictor Models")
+```{r}
+Single_Predictor_RMSE <- resultmat_ordered %>% ggplot(aes(x = Variable, y=RMSE, label =RMSE)) + ylim(16.5,17.5) + geom_hline(yintercept=base_RMSE,color='red', size=2,linetype="dashed") +   geom_label(stat='identity',color="black", size=3, face="bold",fill="lightgrey") + theme(title = element_text(size=12), axis.title.y = element_text(size=14),axis.title.x = element_blank(),axis.text.y = element_text(size=12),axis.text.x = element_text(size=8)) + ggtitle("(A) Single Predictor Models")
 
 Single_Predictor_RMSE
 
@@ -227,12 +231,12 @@ Multipred_df_ordered <- Multipred_df %>%
   arrange(Model) 
 
 Multi_Predictor_RMSE <- Multipred_df_ordered %>% ggplot(aes(x = Model, y=RMSE, label=RMSE)) + 
-  geom_label(stat='identity',color="black", size=5, face="bold",fill="lightgrey") + ylim(11.5,17.5) + geom_hline(yintercept=base_RMSE,color='red', size=2,linetype="dashed") + theme(title = element_text(size=12), axis.title.y = element_text(size=14),axis.title.x = element_blank(),axis.text.y = element_text(size=12),axis.text.x = element_text(size=14)) + ggtitle("(B) Multiple Predictor Models")
+  geom_label(stat='identity',color="black", size=5, face="bold",fill="lightgrey") + ylim(11.5,17.5) + geom_hline(yintercept=17.132,color='red', size=2,linetype="dashed") + theme(title = element_text(size=12), axis.title.y = element_text(size=14),axis.title.x = element_blank(),axis.text.y = element_text(size=12),axis.text.x = element_text(size=14)) + ggtitle("(B) Multiple Predictor Models")
 
 grid.arrange(Single_Predictor_RMSE,Multi_Predictor_RMSE,nrow=2)
 
 
-ggsave(filename = "../../results/Continuous_Outcome_Modeling_results/3.Predictor_RMSE.png",plot = Multi_Predictor_RMSE, width = 5, height = 4)
+ggsave(filename = "../../results/Continuous_Outcome_Modeling_results/3.Predictor_RMSE.png",plot = grid.arrange(Single_Predictor_RMSE,Multi_Predictor_RMSE,nrow=2), width = 5, height = 4)
 ```
 
 

@@ -50,8 +50,19 @@ library("rnaturalearthdata")
 theme_set(theme_bw())
 library("sf")
 library(gridExtra)
-
+titletheme_small <- theme(plot.title = element_text(size=9,vjust=0.1))
+titletheme <- theme(plot.title = element_text(size=12,vjust=0.1))
+library("viridis")
 world <- ne_countries(scale = "medium", returnclass = "sf") #for mapping
+install.packages("tableone")
+library("tableone")
+```
+
+Creating dfs of color schemes I may use 
+```{r}
+mycolors <- c("brown1","lightseagreen","goldenrod1","slateblue")
+species_colors <- c("royalblue","salmon","darkmagenta")
+pisaster_colors <- c("thistle1","plum","orchid3","darkmagenta")
 ```
 
 Load cleaned data
@@ -63,7 +74,7 @@ skim(clean_data)
 
 temp_and_salt <- ggplot(WQ_clean_data, aes(x = salinity, y = water_temp, color = island_side)) + geom_jitter()
 
-
+## Data Tidying/Visualization
 Outcome of interest is `total`, but really just for Pisaster. 
 ```{r}
 P.ochra_clean_data <- filter(clean_data, clean_data$species_code == "P.ochraceus")
@@ -86,19 +97,23 @@ visdat::vis_dat(P.ochra_numer_data)
 ```
 
 ```{r}
+myPalette <- colorRampPalette(viridis_pal(begin = 0, end = 1,option = "plasma")(8),)
+plasma_continuous <- scale_colour_gradientn(colours = myPalette(91328))
+
+
 p1 <- P.ochra_numer_data %>% select_if(is.numeric) %>% gather(-total, key = "var", value = "value") %>% 
-            ggplot() + geom_point(aes(x = value, y=total)) +
-            facet_wrap(~ var, scales = "free") + theme_bw()
+            ggplot() + geom_jitter(aes(x = value, y=total), alpha = 0.4, width = 0.4) +
+            facet_wrap(~ var, scales = "free",nrow=4) + theme_bw() 
 print(p1)
 ```
 
 ```{r}
 p1log <- P.ochra_numer_data %>% select_if(is.numeric) %>% gather(-total, key = "var", value = "value") %>% 
-            ggplot() + geom_point(aes(x = value, y=log(total)), alpha = 0.2) +
-            facet_wrap(~ var, scales = "free") + theme_bw()
+            ggplot() + geom_jitter(aes(x = value, y=log(total)), alpha = 0.3, width = 0.4)+
+            facet_wrap(~ var, scales = "free",nrow=4) + theme_bw()
 print(p1log)
 
-ggsave(filename = "../../results/Continuous_Outcome_Modeling_results/count_vs_numerical.png",plot = p1log, width = 5, height = 4)
+ggsave(filename = "../../results/Continuous_Outcome_Modeling_results/1.count_vs_numerical.png",plot = p1log, width = 5, height = 4)
 ```
 
 ```{r}
@@ -123,15 +138,11 @@ print(p2)
 P.ochra_categ_data <- P.ochra_clean_data %>% select_if(is.factor)
 P.ochra_categ_data$total <- P.ochra_clean_data$total
 P.ochra_categ_data <- P.ochra_categ_data %>% dplyr::select(-species_code)
-p2log <- P.ochra_categ_data %>% gather(-total, -marine_season_code, key = "var", value = "value") %>% ggplot() + geom_violin(aes(x = value, y=log(total), col=value)) + geom_point(aes(x = value, y=log(total), col=value)) + facet_wrap(~ var, scales = "free") + theme_bw() + theme(legend.position = "none")
+p2log <- P.ochra_categ_data %>% gather(-total, -marine_season_code, -marine_site_name, -group_code_UCSC_other, -method_code_IP_other, key = "var", value = "value") %>% ggplot() + geom_violin(aes(x = value, y=log(total), col=value)) + geom_point(aes(x = value, y=log(total), col=value)) + facet_wrap(~ var, scales = "free",nrow=3) + theme_bw() + theme(legend.position = "none") #+ 
+  scale_color_manual(values=pisaster_size_colors)
 print(p2log)
 
-ggsave(filename = "../../results/Continuous_Outcome_Modeling_results/count_vs_categorical.png",plot = p2log, width = 5, height = 4)
-```
-
-```{r}
-p2_mpa <- P.ochra_categ_data %>% ggplot() + geom_violin(aes(x = mpa_region, y=log(total))) + geom_point(aes(x = mpa_region, y=log(total))) + theme_bw()
-print(p2_mpa)
+ggsave(filename = "../../results/Continuous_Outcome_Modeling_results/2.count_vs_categorical.png",plot = p2log, width = 5, height = 4)
 ```
 
 ## Model Fitting
@@ -165,8 +176,21 @@ for (n in 2:ncol(data_train)) #loop over each predictor. For this to work, outco
   fit1 <- train( as.formula(paste("total ~",names(data_train)[n])) , data = data_train, method = "lm", trControl = fitControl) 
  resultmat[n-1,2]= fit1$results$RMSE  
 }
-print(resultmat)
 ```
+
+```{r}
+resultmat_ordered <- resultmat %>%
+  mutate(Variable = factor(Variable, levels = c("size_sort","longitude","latitude","order_site","year","season_year","season_num"))) %>%
+  arrange(Variable) 
+resultmat_ordered$RMSE <- round(resultmat_ordered$RMSE,3)
+
+Single_Predictor_RMSE <- resultmat_ordered %>% ggplot(aes(x = Variable, y=RMSE, label =RMSE)) + ylim(16.5,17.5) + geom_hline(yintercept=base_RMSE,color='red', size=2,linetype="dashed") +   geom_label(stat='identity',color="black", size=5, face="bold",fill="lightgrey") + theme(title = element_text(size=12), axis.title.y = element_text(size=14),axis.title.x = element_blank(),axis.text.y = element_text(size=12),axis.text.x = element_text(size=11)) + ggtitle("(A) Single Predictor Models")
+
+Single_Predictor_RMSE
+
+#ggsave(filename = "../../results/Continuous_Outcome_Modeling_results/3.Single_Predictor_RMSE.png",plot = Single_Predictor_RMSE, width = 5, height = 4)
+```
+
 
 ### Multiple Predictor Models
 
@@ -178,6 +202,40 @@ fit3 <- train(total ~ ., data = data_train, method = "knn", trControl = fitContr
 fit4 <- train(total ~ ., data = data_train, method = "earth", trControl = fitControl) 
 print(sprintf('RMSE of lm/knn/mars model %f/%f/%f', fit2$results$RMSE, min(fit3$results$RMSE), min(fit4$results$RMSE) ))
 ```
+
+```{r}
+library(knitr)
+#install.packages("kableExtra")
+library(kableExtra)
+Model <- c("knn","mars","lm")
+RMSE <- c(12.154,15.758,16.419)
+Multipred_df <- data.frame(Model,RMSE)
+#Multipred_df$RMSE <- as.(Multipred_df$RMSE)
+Multipred_df
+#Multipred_table <- Multipred_df %>%
+ # kable() %>%
+ # kable_styling(bootstrap_options = c("striped", "hover"),full_width = F)
+#Multipred_table
+
+#Multipred_table %>% save_kable("../../results/Continuous_Outcome_Modeling_results/4.Single_Predictor_RMSE.png")
+```
+
+```{r}
+Multipred_df_ordered <- Multipred_df %>%
+  mutate(Model = factor(Model, levels = c("knn","mars","lm"))) %>%
+  arrange(Model) 
+
+Multi_Predictor_RMSE <- Multipred_df_ordered %>% ggplot(aes(x = Model, y=RMSE, label=RMSE)) + 
+  geom_label(stat='identity',color="black", size=5, face="bold",fill="lightgrey") + ylim(11.5,17.5) + geom_hline(yintercept=base_RMSE,color='red', size=2,linetype="dashed") + theme(title = element_text(size=12), axis.title.y = element_text(size=14),axis.title.x = element_blank(),axis.text.y = element_text(size=12),axis.text.x = element_text(size=14)) + ggtitle("(B) Multiple Predictor Models")
+
+grid.arrange(Single_Predictor_RMSE,Multi_Predictor_RMSE,nrow=2)
+
+
+ggsave(filename = "../../results/Continuous_Outcome_Modeling_results/3.Predictor_RMSE.png",plot = Multi_Predictor_RMSE, width = 5, height = 4)
+```
+
+
+
 
 ### Multi-predictor models with pre-processing
 
@@ -200,11 +258,35 @@ fit4a <- train(total ~ ., data = data_train, method = "earth", trControl = fitCo
 print(sprintf('RMSE of lm/knn/mars model %f/%f/%f', fit2a$results$RMSE, min(fit3a$results$RMSE), min(fit4a$results$RMSE) ))
 ```
 
+```{r}
+library(knitr)
+library(kableExtra)
+Model <- c("knn","knn_cs","mars","mars_cs","lm","lm_cs")
+RMSE <- c(12.154,13.211,15.758,15.788,16.419,16.465)
+Multipred_df_cs <- data.frame(Model,RMSE)
+Multipred_df_cs
+
+
+Multipred_df_ordered_cs <- Multipred_df_cs %>%
+  mutate(Model = factor(Model, levels = c("knn","knn_cs","mars","mars_cs","lm","lm_cs"))) %>%
+  arrange(Model) 
+
+Multi_Predictor_RMSE_cs <- Multipred_df_ordered_cs %>% ggplot(aes(x = Model, y=RMSE, label=RMSE)) + 
+  geom_label(stat='identity',color="black", size=5, face="bold",fill="lightgrey") + ylim(11.5,17.5) + geom_hline(yintercept=base_RMSE,color='red', size=2,linetype="dashed") + theme(title = element_text(size=12), axis.title.y = element_text(size=14),axis.title.x = element_blank(),axis.text.y = element_text(size=12),axis.text.x = element_text(size=14))
+
+Multi_Predictor_RMSE_cs
+
+#grid.arrange(Single_Predictor_RMSE,Multi_Predictor_RMSE,nrow=2)
+ggsave(filename = "../../results/Continuous_Outcome_Modeling_results/4.Multi_Predictor_RMSE_cs.png",plot = Multi_Predictor_RMSE_cs, width = 5, height = 4)
+```
+
+
 ### Model Uncertainty
 ```{r}
 #Use the `resamples` function in caret to extract uncertainty from the 3 models fit to the data  that doesn't have predictor pre-processing, then plot it
 resamps <- caret::resamples(list(LM = fit2, KNN = fit3, MARS = fit4))
-bwplot(resamps, layout = c(3, 1))
+uncertainty_plot <- bwplot(resamps, layout = c(3, 1))
+ggsave(filename = "../../results/Continuous_Outcome_Modeling_results/5.Model_Uncertainty.png",plot = uncertainty_plot, width = 5, height = 4)
 ```
 
 
@@ -223,18 +305,42 @@ plot(resid)
 ```
 
 ## Final model evaluation
+### Null Model
+```{r}
+outcome = data_test$total
+Nobs=nrow(data_test)
+base_RMSE <- sqrt(sum((outcome-mean(outcome))^2)/Nobs)
+print(sprintf('RMSE of baseline model is %f',base_RMSE))
+```
+
 ```{r}
 #Write code that computes model predictions and for test data, then compute SSR and RMSE.
 pred <- predict(fit3,data_test)
 outcome <- data_test$total
-SSR <- sum( (outcome - pred)^2 )
+SSR <- sum( (outcome - pred)^2)
 RMSE = sqrt(SSR/length(outcome))
 print(RMSE)
 ```
 
-Since we have a different number of observations, the result isn’t expected to be quite the same as for the training data (despite dividing by sample size to account for that). But it’s fairly close, and surprisingly not actually worse. So the KNN model seems to be reasonable at predicting. Now if its performance is ‘good enough’ is a scientific question.
+
+```{r}
+Data <- c("Null_train","fit3_train","Null_test","fit3_test")
+RMSE <- c(17.132,12.154,18.029,11.728)
+Final_Results <- data.frame(Data,RMSE)
+Final_Results
 
 
+Final_Results_ordered <- Final_Results %>%
+  mutate(Data = factor(Data, levels = c("Null_train","fit3_train","Null_test","fit3_test"))) %>%
+  arrange(Data) 
+
+Final_Results_ordered_plot <- Final_Results_ordered %>% ggplot(aes(x = Data, y=RMSE, label=RMSE)) + 
+  geom_label(stat='identity',color="black", size=5, face="bold",fill="lightgrey") + ylim(11.5,18.5) + theme(title = element_text(size=12), axis.title.y = element_text(size=14),axis.title.x = element_blank(),axis.text.y = element_text(size=12),axis.text.x = element_text(size=14))
+
+Final_Results_ordered_plot
+
+ggsave(filename = "../../results/Continuous_Outcome_Modeling_results/5.final_results_RMSE.png",plot = Final_Results_ordered_plot, width = 5, height = 4)
+```
 
 
 

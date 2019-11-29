@@ -218,7 +218,6 @@ AK <- clean_data %>% select(marine_site_name, marine_common_year, size_bin, tota
 summary(AK)
 ```
 
-[INSERT TABLE SUMMARIZING THIS INFORMATION]
 
 ---
 

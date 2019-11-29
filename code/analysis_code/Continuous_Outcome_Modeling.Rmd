@@ -63,6 +63,7 @@ Creating dfs of color schemes I may use
 mycolors <- c("brown1","lightseagreen","goldenrod1","slateblue")
 species_colors <- c("royalblue","salmon","darkmagenta")
 pisaster_colors <- c("thistle1","plum","orchid3","darkmagenta")
+RMSE_colors <- c("slategray1","steelblue3","thistle2","plum3")
 ```
 
 Load cleaned data
@@ -285,8 +286,8 @@ ggsave(filename = "../../results/Continuous_Outcome_Modeling_results/4.Multi_Pre
 ```{r}
 #Use the `resamples` function in caret to extract uncertainty from the 3 models fit to the data  that doesn't have predictor pre-processing, then plot it
 resamps <- caret::resamples(list(LM = fit2, KNN = fit3, MARS = fit4))
-uncertainty_plot <- bwplot(resamps, layout = c(3, 1))
-ggsave(filename = "../../results/Continuous_Outcome_Modeling_results/5.Model_Uncertainty.png",plot = uncertainty_plot, width = 5, height = 4)
+bwplot(resamps, layout = c(3, 1))
+#ggsave(filename = "../../results/Continuous_Outcome_Modeling_results/5.Model_Uncertainty.png",plot = bwplot(resamps, layout = c(3, 1)), width = 5, height = 4)
 ```
 
 
@@ -297,11 +298,25 @@ ggsave(filename = "../../results/Continuous_Outcome_Modeling_results/5.Model_Unc
 pred <- predict(fit3,data_train)
 outcome <- data_train$total
 resid <- outcome - pred
-plot(outcome,pred,xlim = c(0,270),ylim=c(0,250))
+df_residual <- data.frame(outcome,pred) 
+#plot(outcome,pred,xlim = c(0,270),ylim=c(0,250))
+
+df_residual %>% ggplot(aes(x=outcome,y=pred)) + geom_point()
 ```
 
 ```{r}
-plot(resid)
+myPaletteresid <- colorRampPalette(viridis_pal(begin = 0, end = 1,option = "plasma")(8),)
+title <- "Residuals"
+residual_colours <- scale_colour_gradientn(title,colours = myPaletteresid(50))
+
+#skim(resid)
+Index <- c(1:7993)
+residual_index <- data.frame(Index,resid)
+residuals_plot <- residual_index %>% ggplot(aes(x=Index,y=resid,col=resid)) + geom_point(alpha=0.4) + residual_colours + theme(axis.title.x = element_blank()) + ylab("Residuals") + geom_hline(yintercept = 0,color='goldenrod', size=1.25,linetype="dashed")
+residuals_plot
+
+ggsave(filename = "../../results/Continuous_Outcome_Modeling_results/5.Residuals.png",plot = residuals_plot, width = 5, height = 4)
+#plot(resid)
 ```
 
 ## Final model evaluation
@@ -335,11 +350,11 @@ Final_Results_ordered <- Final_Results %>%
   arrange(Data) 
 
 Final_Results_ordered_plot <- Final_Results_ordered %>% ggplot(aes(x = Data, y=RMSE, label=RMSE)) + 
-  geom_label(stat='identity',color="black", size=5, face="bold",fill="lightgrey") + ylim(11.5,18.5) + theme(title = element_text(size=12), axis.title.y = element_text(size=14),axis.title.x = element_blank(),axis.text.y = element_text(size=12),axis.text.x = element_text(size=14))
+  geom_label(stat='identity',fill=RMSE_colors, size=7, face="bold") + ylim(11.5,18.5) + theme(title = element_text(size=12), axis.title.y = element_text(size=14),axis.title.x = element_blank(),axis.text.y = element_text(size=12),axis.text.x = element_text(size=14)) 
 
 Final_Results_ordered_plot
 
-ggsave(filename = "../../results/Continuous_Outcome_Modeling_results/5.final_results_RMSE.png",plot = Final_Results_ordered_plot, width = 5, height = 4)
+ggsave(filename = "../../results/Continuous_Outcome_Modeling_results/6.final_results_RMSE.png",plot = Final_Results_ordered_plot, width = 5, height = 4)
 ```
 
 

@@ -53,6 +53,14 @@ library(gridExtra)
 
 world <- ne_countries(scale = "medium", returnclass = "sf") #for mapping
 ```
+Creating dfs of color schemes I may use 
+```{r}
+state_colors <- c("brown1","lightseagreen","goldenrod1","slateblue")
+species_colors <- c("royalblue","salmon","darkmagenta")
+pisaster_colors <- c("thistle1","plum","orchid3","darkmagenta")
+RMSE_colors <- c("slategray1","steelblue3","thistle2","plum3")
+bioreg_colours <- c("brown3","goldenrod1","darkolivegreen4","skyblue3","mediumpurple3","hotpink3")
+```
 
 Load cleaned data
 ```{r}
@@ -67,56 +75,128 @@ names(clean_data)
 
 # Bioregion
 ```{r}
-bioregion_histogram <- clean_data %>% ggplot() + geom_bar(aes(bioregion))
+bioregion_histogram <- clean_data %>% ggplot() + geom_bar(aes(bioregion),fill=bioreg_colours)
 bioregion_histogram 
-ggsave(filename = "../../results/Categorical_Outcome_Modeling_results/bioregion_histogram.png",plot =bioregion_histogram , width = 5, height = 4)
+ggsave(filename = "../../results/Categorical_Outcome_Modeling_results/1.bioregion_histogram.png",plot =bioregion_histogram , width = 5, height = 4)
 ```
 
 Data visualization
 #write code that produces plots showing our outcome of interest on the x-axis and each numeric predictor on the y-axis.
 
 ```{r}
+clean_data$season_sequence <- as.factor(clean_data$season_sequence)
 numer_data <- clean_data %>% select_if(is.numeric) 
 
 numer_data$bioregion <- clean_data$bioregion
 
-numer_data <- numer_data %>% dplyr::select(-size_bin)
+numer_data <- numer_data %>% dplyr::select(-size_sort_order)
+```
 
+```{r}
 numer_data_plot <- numer_data %>% gather(-bioregion, key = "var", value = "value") %>% 
-            ggplot() + geom_point(aes(x = bioregion, y=value, col=bioregion)) +
-            facet_wrap(~ var, scales = "free") + theme_bw() + theme(legend.position = "none")
+            ggplot() + geom_point(aes(x = bioregion, y=value, col=bioregion)) + theme(axis.text.x = element_blank()) +
+            facet_wrap(~ var, scales = "free") + theme_bw() + theme(legend.position = "none", axis.title.x = element_blank()) +  scale_color_manual(values=bioreg_colours)
 print(numer_data_plot)
 ```
 
+
+```{r}
+latitude_bioreg <- numer_data %>% ggplot(aes(x = bioregion, y=latitude, col=bioregion)) + geom_boxplot() + geom_point(size=4,alpha=0.1) + ylab("Latitude") + theme(axis.text.x = element_blank(),axis.title.x=element_blank(),legend.position = "none",axis.title.y=element_text(size=12),axis.text.y=element_text(size=12)) + scale_color_manual(values=bioreg_colours)
+#latitude_bioreg
+
+longitude_bioreg <- numer_data %>% ggplot(aes(x = bioregion, y=longitude, col=bioregion)) + geom_boxplot() + geom_point(size=4,alpha=0.1) + ylab("Longitude") +  theme(axis.text.x = element_blank(),axis.title.x=element_blank(),legend.position = "none",axis.title.y=element_text(size=12),axis.text.y=element_text(size=12)) + scale_color_manual(values=bioreg_colours)
+#longitude_bioreg
+
+
+season_chron_bioreg <- numer_data %>% ggplot(aes(x = bioregion, y=marine_common_season, col=bioregion)) + geom_boxplot() + geom_point(size=4,alpha=0.1) + ylab("Season & Year") + theme(axis.text.x = element_blank(),axis.title.x=element_blank(),legend.position = "none",axis.title.y=element_text(size=12),axis.text.y=element_text(size=12)) + scale_color_manual(values=bioreg_colours)
+#season_chron_bioreg
+
+year_bioreg <- numer_data %>% ggplot(aes(x = bioregion, y=marine_common_year, col=bioregion)) + geom_boxplot() + geom_point(size=4,alpha=0.1) + ylab("Year") +  theme(axis.text.x = element_blank(),axis.title.x=element_blank(),legend.position = "none",axis.title.y=element_text(size=12),axis.text.y=element_text(size=12)) + scale_color_manual(values=bioreg_colours)
+#year_bioreg
+
+site_bioreg <- numer_data %>% ggplot(aes(x = bioregion, y=marine_sort_order, col=bioregion)) + geom_boxplot() + geom_point(size=4,alpha=0.1) + ylab("Sites (Ordered)") +  theme(axis.text.x = element_blank(),axis.title.x=element_blank(),legend.position = "none",axis.title.y=element_text(size=12),axis.text.y=element_text(size=12)) + scale_color_manual(values=bioreg_colours)
+#site_bioreg
+
+size_bioreg <- numer_data %>% ggplot(aes(x = bioregion, y=size_bin, col=bioregion)) + geom_boxplot() + geom_point(size=4,alpha=0.1) + ylab("Size Class") +  theme(axis.text.x = element_blank(),axis.title.x=element_blank(),legend.position = "none",axis.title.y=element_text(size=12),axis.text.y=element_text(size=12)) + scale_color_manual(values=bioreg_colours)
+#size_bioreg
+
+abundance_bioreg <- numer_data %>% ggplot(aes(x = bioregion, y=log(total), col=bioregion)) + geom_boxplot() + geom_point(size=4,alpha=0.1) + ylab("log(Spp. Abundance)") +  theme(axis.text.x = element_blank(),axis.title.x=element_blank(),legend.position = "none",axis.title.y=element_text(size=12),axis.text.y=element_text(size=12)) + scale_color_manual(values=bioreg_colours)
+#abundance_bioreg
+```
+
+
+```{r}
+grid.arrange(latitude_bioreg,longitude_bioreg,site_bioreg,nrow=1,top="(A) Spatial Numeric Predictors")
+ggsave(filename = "../../results/Categorical_Outcome_Modeling_results/2.spatial_num_pred.png",plot =grid.arrange(latitude_bioreg,longitude_bioreg,site_bioreg,nrow=1,top="(A) Spatial Numeric Predictors")
+ , width = 5, height = 4)
+
+grid.arrange(season_chron_bioreg,year_bioreg,nrow=1,top="(B) Temporal Numeric Predictors")
+ggsave(filename = "../../results/Categorical_Outcome_Modeling_results/3.temporal_num_pred.png",plot =grid.arrange(season_chron_bioreg,year_bioreg,nrow=1,top="(B) Temporal Numeric Predictors"))
+
+grid.arrange(abundance_bioreg,size_bioreg,nrow=1,top="(C) Spp.-Related Numeric Predictors")
+ggsave(filename = "../../results/Categorical_Outcome_Modeling_results/4.spp.rel_num_pred.png",plot =grid.arrange(abundance_bioreg,size_bioreg,nrow=1,top="(C) Spp.-Related Numeric Predictors"))
+#grid.arrange(latitude_bioreg,longitude_bioreg,season_chron_bioreg,year_bioreg,site_bioreg,size_bioreg,abundance_bioreg,nrow=3)
+```
+
+## Characterizing categorical data
 ```{r}
 categ_data <- clean_data %>% select_if(is.factor) 
-categ_data <- categ_data %>% dplyr::select(-marine_site_name)
-#names(categ_data)
-categ_data_plotA <- categ_data %>% gather(-bioregion, -method_code, -species_code, -mpa_region, -georegion, -island, -group_code_UCSC_other, -method_code_IP_other, -state, key = "var", value = "value") %>% 
-            ggplot() + geom_count(aes(x = bioregion, y=value, col=bioregion)) +
-            facet_wrap(~ var, scales = "free") + theme_bw() + theme(legend.position = "none")
-print(categ_data_plotA)
+categ_data <- categ_data %>% dplyr::select(-marine_site_name,-season_sequence,-marine_season_code)
+names(categ_data)
 ```
 
 ```{r}
-categ_data_plotB <- categ_data %>% gather(-bioregion, -group_code, -site_code, -marine_season_code, -season_name, -island, -group_code_UCSC_other, -method_code_IP_other, -state, key = "var", value = "value") %>% 
-            ggplot() + geom_count(aes(x = bioregion, y=value, col=bioregion)) +
-            facet_wrap(~ var, scales = "free") + theme_bw() + theme(legend.position = "none")
-print(categ_data_plotB)
+categ_data_plotting <- categ_data %>% dplyr::select(-method_code_IP_other,-group_code_UCSC_other)
+
+groupcode_bioreg <- categ_data_plotting %>% ggplot(aes(x = bioregion, y=group_code, col=bioregion)) + geom_jitter(size=4,alpha=0.15,width=0.4,height=0.25) + ylab("Surveying Group") + theme(axis.text.x = element_blank(),axis.title.x=element_blank(),legend.position = "none",axis.title.y=element_text(size=12),axis.text.y=element_text(size=12)) + scale_color_manual(values=bioreg_colours)
+#groupcode_bioreg
+
+sitecode_bioreg <- categ_data_plotting %>% ggplot(aes(x = bioregion, y=site_code, col=bioregion)) + geom_jitter(size=4,alpha=0.15,width=0.4,height=0.25) + ylab("Site") + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),axis.text.x = element_blank(),axis.title.x=element_blank(),axis.text.y = element_blank(),legend.position = "none",axis.title.y=element_text(size=12))+ scale_color_manual(values=bioreg_colours)
+#sitecode_bioreg
+
+season_bioreg <- categ_data_plotting %>% ggplot(aes(x = bioregion, y=season_name, col=bioregion)) + geom_jitter(size=4,alpha=0.15,width=0.4,height=0.25) + ylab("Season") + theme(axis.text.x = element_blank(),axis.title.x=element_blank(),legend.position = "none",axis.title.y=element_text(size=12),axis.text.y=element_text(size=12))+ scale_color_manual(values=bioreg_colours)
+#season_bioreg
+
+method_bioreg <- categ_data_plotting %>% ggplot(aes(x = bioregion, y=method_code, col=bioregion)) + geom_jitter(size=4,alpha=0.15,width=0.4,height=0.25) + ylab("Sampling Method") + theme(axis.text.x = element_blank(),axis.title.x=element_blank(),legend.position = "none",axis.title.y=element_text(size=12),axis.text.y=element_text(size=12))+ scale_color_manual(values=bioreg_colours)
+#method_bioreg
+
+species_bioreg <- categ_data_plotting %>% ggplot(aes(x = bioregion, y=species_code, col=bioregion)) + geom_jitter(size=4,alpha=0.15,width=0.4,height=0.25) + ylab("Species") + theme(axis.text.x = element_blank(),axis.title.x=element_blank(),legend.position = "none",axis.title.y=element_text(size=12),axis.text.y=element_text(size=12))+ scale_color_manual(values=bioreg_colours)
+#species_bioreg
+
+mpareg_bioreg <- categ_data_plotting %>% ggplot(aes(x = bioregion, y=mpa_region, col=bioregion)) + geom_jitter(size=4,alpha=0.15,width=0.4,height=0.25) + ylab("MPA Region") + theme(axis.text.x = element_blank(),axis.title.x=element_blank(),legend.position = "none",axis.title.y=element_text(size=12),axis.text.y=element_text(size=12))+ scale_color_manual(values=bioreg_colours)
+#mpareg_bioreg
+
+georegion_bioreg <- categ_data_plotting %>% ggplot(aes(x = bioregion, y=georegion, col=bioregion)) + geom_jitter(size=4,alpha=0.15,width=0.4,height=0.25) + ylab("Georegion") + theme(axis.text.x = element_blank(),axis.title.x=element_blank(),legend.position = "none",axis.title.y=element_text(size=12),axis.text.y=element_text(size=12))+ scale_color_manual(values=bioreg_colours)
+#georegion_bioreg
+
+island_bioreg <- categ_data_plotting %>% ggplot(aes(x = bioregion, y=island, col=bioregion)) + geom_jitter(size=4,alpha=0.15,width=0.4,height=0.25) + ylab("Island Location?") + theme(axis.text.x = element_blank(),axis.title.x=element_blank(),legend.position = "none",axis.title.y=element_text(size=12),axis.text.y=element_text(size=12))+ scale_color_manual(values=bioreg_colours)
+#island_bioreg
+
+state_bioreg <- categ_data_plotting %>% ggplot(aes(x = bioregion, y=state, col=bioregion)) + geom_jitter(size=4,alpha=0.15,width=0.4,height=0.25) + ylab("State") + theme(axis.text.x = element_blank(),axis.title.x=element_blank(),legend.position = "none",axis.title.y=element_text(size=12),axis.text.y=element_text(size=12))+ scale_color_manual(values=bioreg_colours)
+#state_bioreg
 ```
 
 ```{r}
-categ_data_plotC <- categ_data %>% gather(-bioregion, -group_code, -site_code, -marine_season_code, -season_name, -method_code, -species_code, -mpa_region, -georegion, key = "var", value = "value") %>% 
-            ggplot() + geom_count(aes(x = bioregion, y=value, col=bioregion)) + 
-            facet_wrap(~ var, scales = "free") + theme_bw() + theme(legend.position = "none")
-print(categ_data_plotC)
+grid.arrange(groupcode_bioreg,method_bioreg,species_bioreg,nrow=3,top="(A) Sample Info Categorical Predictors")
+ggsave(filename = "../../results/Categorical_Outcome_Modeling_results/5.sampleinfo_cat_pred.png",plot =grid.arrange(groupcode_bioreg,method_bioreg,species_bioreg,nrow=3,top="(A) Sample Info Categorical Predictors"))
+
+grid.arrange(state_bioreg,georegion_bioreg,sitecode_bioreg,nrow=3,top="(B) Spatial Categorical Predictors")
+ggsave(filename = "../../results/Categorical_Outcome_Modeling_results/6.spatial_cat_pred.png",plot =grid.arrange(state_bioreg,georegion_bioreg,sitecode_bioreg,nrow=3,top="(B) Spatial Categorical Predictors"))
+
+grid.arrange(season_bioreg,mpareg_bioreg,island_bioreg,nrow=3,top="(C) Ecological Categorical Predictors")
+ggsave(filename = "../../results/Categorical_Outcome_Modeling_results/7.eco_cat_pred.png",plot =grid.arrange(season_bioreg,mpareg_bioreg,island_bioreg,nrow=3,top="(C) Ecological Categorical Predictors"))
+
+#grid.arrange(groupcode_bioreg,sitecode_bioreg,season_bioreg,method_bioreg,species_bioreg,mpareg_bioreg,georegion_bioreg,island_bioreg,state_bioreg)
+
 ```
+
+## Modeling
 
 Make sure Bioregion is first
 ```{r}
-#names(clean_data) # bioregion is 19, 23 total, get rid of 3 and 15
-clean_data_final <- clean_data[c(19,1,2,4,5,6,7,8,9,10,11,12,13,14,16,17,18,20,21,22,23)]
-#names(clean_data_final) # double checking
+#names(clean_data) # bioregion is 19, 23 total, get rid of 3 and 14
+clean_data_final <- clean_data[c(19,1,2,4,5,6,7,8,9,10,11,12,13,15,16,17,18,20,21,22,23)]
+names(clean_data_final) # double checking
 ```
 
 
@@ -155,7 +235,25 @@ resultmat[n-1,2]= max(fit1$results$Accuracy)
 print(resultmat)
 ```
 
-So a lot of these have very strong (and in some cases, perfect, aka 100%) correlation with `bioregion`, and for very obvious reasons. Therefore, I'm going to remove variables in 2 ways: one will be more conservative (aka I'll be removing those with above a 90% accuracy- calling it `data_subset_A`) and one will be less conservative (aka I'll be removing those with above a 70% accuracy- calling it `data_subset_B`)
+```{r}
+library(knitr)
+library(kableExtra)
+Variable <- c("size_bin","total","marine_common_year","species_code","island","method_code_IP_other","method_code","group_code_UCSC_other","state","marine_season_code","group_code","season_name","season_sequence","marine_common_season","site_code","mpa_region","georegion","latitude", "longitude","marine_sort_order")
+Accuracy <- c(0.43,0.44,0.44,0.46,0.49,0.51,0.51,0.60,0.61,0.62,0.69,0.70,0.70,0.70,0.80,0.90,0.98,1.00,1.00,1.00)
+Singlepred_df <- data.frame(Variable,Accuracy)
+Singlepred_df
+Singlepred_df_ordered <- Singlepred_df %>%
+  mutate(Variable = factor(Variable, levels = c("size_bin","total","marine_common_year","species_code","island","method_code_IP_other","method_code","group_code_UCSC_other","state","marine_season_code","group_code","season_name","season_sequence","marine_common_season","site_code","mpa_region","georegion","latitude", "longitude","marine_sort_order"))) %>%
+  arrange(Variable)
+
+Single_Predictor_Accuracy <- Singlepred_df_ordered %>% ggplot(aes(x = Variable, y=Accuracy, label =Accuracy)) + geom_hline(yintercept=null_accuracy_treefit,color='red', size=2,linetype="dashed") +   geom_label(stat='identity',color="black", size=4,fill="lightgrey") + theme(title = element_text(size=12), axis.title.y = element_text(size=14),axis.title.x = element_blank(),axis.text.y = element_text(size=12),axis.text.x = element_text(size=8,angle=40,hjust=1)) + ggtitle("Single Predictor Models (pre-subsetting)") + geom_vline(xintercept=11.5,color="deepskyblue",size=1.5,linetype="dashed")
+
+Single_Predictor_Accuracy
+ggsave(filename = "../../results/Categorical_Outcome_Modeling_results/8.single_predictor_accuracy.png",plot = Single_Predictor_Accuracy, width = 6, height = 4)
+```
+
+
+### So a lot of these have very strong (and in some cases, perfect, aka 100%) correlation with `bioregion`, and for very obvious reasons. Therefore, I'm going to remove variables in 2 ways: one will be more conservative (aka I'll be removing those with above a 90% accuracy- calling it `data_subset_A`) and one will be less conservative (aka I'll be removing those with above a 70% accuracy- calling it `data_subset_B`)
 
 So lets do that now.
 # Preparing Data Subset A

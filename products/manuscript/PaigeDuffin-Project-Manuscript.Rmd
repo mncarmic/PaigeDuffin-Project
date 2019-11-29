@@ -1,12 +1,13 @@
 ---
-title: "Paige Duffin Data Analysis Project"
-subtitle: "Trends in Sea Star Abundance on the US West Coast"
-author: Paige Duffin
+title: "Trends in Sea Star Abundance on the US West Coast"
+subtitle: "Paige Duffin Data Analysis Project"
+content author: "Paige Duffin" 
+template author: "Andreas Handel"
 institute: "University of Georgia"
 date: "`r Sys.Date()`"
 site: bookdown::bookdown_site
 documentclass: article
-output: html_document
+output: word_document
 bibliography: ../references.bib
 csl: ../apa.csl
 ---
@@ -260,5 +261,9 @@ _What are the main take-home messages?_
 
 
 _Include citations in your Rmd file using bibtex, the list of references will automatically be placed at the end_
+
+
+reference [@Leek2015a] here
+reference [@bull_theory_2014] here
 
 ### References

@@ -7,7 +7,7 @@ output: html_document
 
 # Exploratory Analysis {.tabset}
 
-## Preparing Workspace
+## Preparing workspace
 
 Load necessary packages
 ```{r}
@@ -50,8 +50,17 @@ library("rnaturalearthdata")
 theme_set(theme_bw())
 library("sf")
 library(gridExtra)
-
+titletheme_small <- theme(plot.title = element_text(size=9,vjust=0.1))
+titletheme <- theme(plot.title = element_text(size=12,vjust=0.1))
+library("viridis")
 world <- ne_countries(scale = "medium", returnclass = "sf") #for mapping
+```
+
+Creating dfs of color schemes I'll be using throughout
+```{r}
+mycolors <- c("brown1","lightseagreen","goldenrod1","slateblue")
+species_colors <- c("royalblue","salmon","darkmagenta")
+pisaster_colors <- c("thistle1","plum","orchid3","darkmagenta")
 ```
 
 Load cleaned data
@@ -60,9 +69,9 @@ clean_data <- readRDS("../../data/processed_data/processeddata.rds")
 skim(clean_data)
 ```
 
-## Mapping Sample Sites
+## Mapping sample sites
 
-#### Create new data frame that just lists each site once 
+### Create new data frame that just lists each site once 
 ```{r}
 unique_sites <- subset(clean_data, !duplicated(clean_data$site_code)) 
 #names(unique_sites)
@@ -80,19 +89,17 @@ WA_coordinates <- as.data.frame(WA_coordinates)
 AK_coordinates <- as.data.frame(AK_coordinates)
 ```
 
----
 
-#### Plot sample sites
+### Plot sample sites
 After messing around with several different mapping tools in R, I decided that trying to display the whole range (CA to AK) on one map would be really hard, and the Alaska sites are really just at one specific location, so I'm going to split Alaska off from the three states that are part of the contiguous US
 
-#### Plot sites on state maps
-Alaska:
+#### Alaska sites on map:
 ```{r}
 world <- ne_countries(scale = "medium", returnclass = "sf")
 
 AK_map <- ggplot(data = world) +
     geom_sf() +
-  geom_point(data= sites_coordinates,aes(x=sites_coordinates$longitude, y=sites_coordinates$latitude,), size = 4, alpha = 0.4,  color ="orange") +
+  geom_point(data= sites_coordinates,aes(x=sites_coordinates$longitude, y=sites_coordinates$latitude,), size = 4, alpha = 0.6,  color ="brown1") +
   annotation_scale(location = "bl", width_hint = 0.3) +
   coord_sf(xlim = c(-168, -131), ylim = c(51, 73), expand = FALSE) + 
   xlab("Longitude") + 
@@ -105,10 +112,10 @@ AK_map <- ggplot(data = world) +
 
 AK_map 
 
-ggsave(filename = "../../results/Exploratory_Analysis_results/AK_sites_map.png",plot = AK_map, width = 3.5, height = 4) 
+ggsave(filename = "../../results/Exploratory_Analysis_results/1.AK_sites_map.png",plot = AK_map, width = 3.5, height = 4) 
 ```
 
-
+#### California sites on map:
 ```{r}
 State <- sites_coordinates_contig$state
 
@@ -126,13 +133,14 @@ CA_map <- ggplot(data = world) +
   geom_text(aes(x = -118.9, y = 33.7, label = ">")) + 
   geom_text(aes(x = -120.9, y = 33.6, label = "Los Angeles")) +
   theme(legend.position = "none") + 
-  scale_x_continuous(breaks = c(-124, -122, -120, -118))
+  scale_x_continuous(breaks = c(-124, -122, -120, -118))  + scale_color_manual(values=mycolors)
 
 CA_map
 
-ggsave(filename = "../../results/Exploratory_Analysis_results/CA_sites_map.png",plot = CA_map, width = 3.5, height = 4) 
+ggsave(filename = "../../results/Exploratory_Analysis_results/4.CA_sites_map.png",plot = CA_map, width = 3.5, height = 4) 
 ```
 
+#### Oregon sites on map:
 ```{r}
 OR_map <- ggplot(data = world) +
     geom_sf() +
@@ -145,13 +153,14 @@ OR_map <- ggplot(data = world) +
   geom_text(aes(x = -122.8, y = 45.6, label = "*")) + 
   geom_text(aes(x = -122.8, y = 45.4, label = "Portland")) + 
   theme(legend.position = "none") +
-  scale_x_continuous(breaks = c(-126, -124, -122))
+  scale_x_continuous(breaks = c(-126, -124, -122))  + scale_color_manual(values=mycolors)
 
 OR_map
 
-ggsave(filename = "../../results/Exploratory_Analysis_results/OR_sites_map.png",plot = OR_map, width = 3.5, height = 4) 
+ggsave(filename = "../../results/Exploratory_Analysis_results/3.OR_sites_map.png",plot = OR_map, width = 3.5, height = 4) 
 ```
 
+#### Washington sites on map:
 ```{r}
 WA_map <- ggplot(data = world) +
     geom_sf() +
@@ -165,45 +174,44 @@ WA_map <- ggplot(data = world) +
   geom_text(aes(x = -123.7, y = 47.75, label = "Peninsula")) +
   geom_text(aes(x = -121.9, y = 47.75, label = "< Seattle")) +
   theme(legend.position = "none") + 
-  scale_x_continuous(breaks = c(-124, -123, -122))
+  scale_x_continuous(breaks = c(-124, -123, -122)) + scale_color_manual(values=mycolors)
 
 WA_map 
 
-ggsave(filename = "../../results/Exploratory_Analysis_results/WA_sites_map.png",plot = WA_map, width = 3.5, height = 4) 
+ggsave(filename = "../../results/Exploratory_Analysis_results/2.WA_sites_map.png",plot = WA_map, width = 3.5, height = 4) 
 ```
 
----
----
-## Count Data by Sampling Location
-### Overall histogram of counts per sample survey
+
+### Count Data by location
+#### Overall histogram of counts per sample survey
 ```{r}
 clean_data %>% ggplot() + 
   geom_histogram(aes(total))
 ```
 
 ### What does the structure of the data look like by state?
-#### CA
+### CA 
 ```{r}
 CA <- clean_data %>% select(marine_site_name, marine_common_year, size_bin, total, state) %>%
   filter(state == "CA")
 summary(CA)
 ```
 
-#### OR
+### OR
 ```{r}
 OR <- clean_data %>% select(marine_site_name, marine_common_year, size_bin, total, state) %>%
   filter(state == "OR")
 summary(OR)
 ```
 
-#### WA
+### WA
 ```{r}
 WA <- clean_data %>% select(marine_site_name, marine_common_year, size_bin, total, state) %>%
   filter(state == "WA")
 summary(WA)
 ```
 
-#### AK
+### AK
 ```{r}
 AK <- clean_data %>% select(marine_site_name, marine_common_year, size_bin, total, state) %>%
   filter(state == "AK")
@@ -214,118 +222,109 @@ summary(AK)
 
 ---
 
-## Count Data by Sampling Time
+## Broad changes in abundance
 ### What does sea star abundance over time look like? 
-#### Yearly scale
+### Yearly scale- All years surveyed (2000-2018)
 ```{r}
-#clean_data %>% ggplot(aes(marine_common_year, total)) +  geom_jitter(width = 0.15, alpha = 0.25)
-clean_data %>% ggplot(aes(marine_common_year, log(total), group = marine_common_year)) + 
-  geom_boxplot(alpha = 0.4) + 
+abundance_time_boxplots <- clean_data %>% ggplot(aes(marine_common_year, log(total), group = marine_common_year)) + geom_boxplot(alpha = 0.4, fill = "grey67") +
   xlab("Year") + 
-  ylab("log(Abundance by Site)")  
-#clean_data %>% ggplot() + geom_density(aes(total, fill = marine_common_year))
+  ylab("log(Abundance)")  
+abundance_time_boxplots
+
+ggsave(filename = "../../results/Exploratory_Analysis_results/5.abundance_time_boxplots.png",plot = abundance_time_boxplots, width = 5, height = 4) 
 ```
 
-#### Lets color the points by state 
+#### Lets plot and color the points by state 
 ```{r}
-clean_data %>% ggplot(aes(marine_common_year, total, col=state)) +  geom_jitter(width = 0.15, alpha = 0.25)
+clean_data %>% ggplot(aes(marine_common_year, total, col=state)) +  geom_jitter(width = 0.15, alpha = 0.25) + scale_color_manual(values=mycolors)
 ```
 Woah, California is dominating this visualization. 
 
-#### Lets break that up into 4 parts:
+#### Lets break that up into 4 parts so I can actually see whats going on in the 3 other states:
 ```{r}
-clean_data %>%   
-  ggplot(aes(marine_common_year, total, col=state)) +  geom_jitter(width = 0.15, alpha = 0.25) +
-  facet_wrap(~state)
+ordered_data <- clean_data
+ordered_data$facet = factor(ordered_data$state, levels = c("AK", "WA", "OR", "CA"))
+ordered_data %>%   
+  ggplot(aes(marine_common_year, total, col=state)) +  geom_jitter(width = 0.15, alpha = 0.4) +
+    scale_color_manual(values=mycolors) +  xlab("Year") + 
+  ylab("Spp. Abundance") +
+  facet_wrap(~facet)
 ```
+
 Washington and Alaska clearly weren't surveyed for all years during which California and Oregon were. 
 
 #### What do these counts look like if we display them as log()?
 ```{r}
-Abundance_State_Year_graphs <- clean_data %>%   
-  ggplot(aes(marine_common_year, log(total), col=state)) +  geom_jitter(width = 0.15, alpha = 0.25) +
-  facet_wrap(~state) +
-  xlab("Year") + ylab("log(Abundance)")
-```
-
-```{r}
+Abundance_State_Year_graphs <- ordered_data %>%   
+  ggplot(aes(marine_common_year, log(total), col=state)) +  geom_jitter(width = 0.25, alpha = 0.25) +
+  facet_wrap(~facet) +
+  xlab("Year") + ylab("log(Spp. Abundance)") + theme(legend.position = "none")
+Abundance_State_Year_graphs <- Abundance_State_Year_graphs  + scale_color_manual(values=mycolors)
 Abundance_State_Year_graphs
-
-ggsave(filename = "../../results/Exploratory_Analysis_results/Abundance_State_Year_graphs.png",plot = Abundance_State_Year_graphs, width = 5, height = 4) 
+ggsave(filename = "../../results/Exploratory_Analysis_results/6.Abundance_State_Year_graphs.png",plot = Abundance_State_Year_graphs, width = 5, height = 4) 
 ```
+That allows us to see a lot more of what is going on. I will likely use the log transformation when looking at abundance data.
 
 ---
 
-#### Abundance over time
-```{r}
-abundance_time_boxplots <- clean_data %>% ggplot(aes(marine_common_year, log(total), group = marine_common_year)) + 
-  geom_boxplot(alpha = 0.4, fill = "grey67") +
-  xlab("Year") + 
-  ylab("log(Abundance)")  
-abundance_time_boxplots
-```
-
-```{r}
-ggsave(filename = "../../results/Exploratory_Analysis_results/abundance_time_boxplots.png",plot = abundance_time_boxplots, width = 5, height = 4) 
-```
-
-
----
-
+## Abundance by species
 ### So far I've been looking at abundance across all 3 species surveyed. What does the abundance over time graph look like for each species, seperately? 
-#### Summary statistics for each species over time
+
+#### Prepare data frames
 ```{r}
-P.ochra_only <- filter(clean_data, species_code == "P.ochraceus")
-K.tuni_only <- filter(clean_data, species_code == "K.tunicata")
-E.tros_only <- filter(clean_data, species_code == "E.troschelii")
-#skim(P.ochra_only)
-#skim(K.tuni_only)
-#skim(E.tros_only)
+P.ochra_only <- filter(ordered_data, species_code == "P.ochraceus")
+K.tuni_only <- filter(ordered_data, species_code == "K.tunicata")
+E.tros_only <- filter(ordered_data, species_code == "E.troschelii")
 ```
 
-#### Species abundance over time
+### Abundance over time at yearly scale (2000-2018) **by species**
+#### P. ochraceus (the species I'm primarily interested in) abundance over time
 ```{r}
 P.ochra_only_boxplot <- P.ochra_only %>% ggplot(aes(marine_common_year, log(total), group = marine_common_year)) + 
-  geom_boxplot(fill = "orchid4", alpha = 0.4) +
+  geom_boxplot(fill = "darkmagenta", alpha = 0.7) +
   xlab("Year") + 
   ylab("log(P.ochraceus Abundance)")  
 P.ochra_only_boxplot
-ggsave(filename = "../../results/Exploratory_Analysis_results/P.ochra_only_boxplot.png",plot = P.ochra_only_boxplot, width = 5, height = 4)
+ggsave(filename = "../../results/Exploratory_Analysis_results/7.P.ochra_only_2000-2018.png",plot = P.ochra_only_boxplot, width = 5, height = 4)
 ```
 
+#### K. tunicata abundance over time
 ```{r}
 K.tuni_only_boxplot <- K.tuni_only %>% ggplot(aes(marine_common_year, log(total), group = marine_common_year)) + 
-  geom_boxplot(fill = "orange3", alpha = 0.4) +
+  geom_boxplot(fill = "salmon", alpha = 0.7) +
   xlab("Year") + 
   ylab("log(K.tunicata Abundance)")  
 K.tuni_only_boxplot
 
-ggsave(filename = "../../results/Exploratory_Analysis_results/K.tuni_only_boxplot.png",plot = K.tuni_only_boxplot, width = 5, height = 4)
+ggsave(filename = "../../results/Exploratory_Analysis_results/8.K.tuni_only_2000-2018.png",plot = K.tuni_only_boxplot, width = 5, height = 4)
 ```
 
+#### E. troschelii abundance over time
 ```{r}
-E.tros_only_boxplot <- E.tros_only %>% ggplot(aes(marine_common_year, log(total), group = marine_common_year)) + geom_boxplot(fill = "skyblue3", alpha = 0.4) +
+E.tros_only_boxplot <- E.tros_only %>% ggplot(aes(marine_common_year, log(total), group = marine_common_year)) + geom_boxplot(fill = "royalblue", alpha = 0.7) +
   xlab("Year") + 
   ylab("log(E.troschelii Abundance)")  
 E.tros_only_boxplot
 
-ggsave(filename = "../../results/Exploratory_Analysis_results/E.tros_only_boxplot.png",plot = E.tros_only_boxplot, width = 5, height = 4)
+ggsave(filename = "../../results/Exploratory_Analysis_results/9.E.tros_only_2000-2018.png",plot = E.tros_only_boxplot, width = 5, height = 4)
 ```
 
 That last one looked like the log() function might not be applicable. Let's see what it looks like without that:
 ```{r}
-E.tros_only %>% ggplot(aes(marine_common_year, total, group = marine_common_year)) + geom_boxplot(fill = "skyblue3", alpha = 0.4) +
+E.tros_only %>% ggplot(aes(marine_common_year, total, group = marine_common_year)) + geom_boxplot(fill = "royalblue", alpha = 0.7) +
   xlab("Year") + 
   ylab("log(E.troschelii Abundance)") 
 ```
+No- still like log(abundance) better
 
 ---
 
-#### Characterizing sea star abundance in the last decade 
+## Narrowing the timeframe
+### Characterizing sea star abundance in the last decade 
 The most recent and catastrophic sea star wasting disease outbreak hit the west coast of North America around 2013. How did sea star abundance look before the epidemic, how did it change during the epidemic, and have the populations rebounded? 
 
 ```{r}
-last_decade <- filter(clean_data, marine_common_year >= "2010")
+last_decade <- filter(ordered_data, marine_common_year >= "2010")
 last_decade %>% ggplot(aes(marine_common_year, log(total), group = marine_common_year)) +
   geom_boxplot(alpha = 0.4, fill = "grey67") +
   xlab("Year") + 
@@ -335,21 +334,21 @@ It looks like populations leveled back out at 2016 and remained relatively uncha
 
 ---
 
-## 2013-2016 Abundance Data
+### 2013-2016 Abundance Data
 It looks like theres a detectable decrease between 2013 and 2014, and that populations leveled back out at 2016 and remained relatively unchanged in 2017 and 2018. Lets narrow the time frame to only include sampling between 2013 and 2016. 
 ```{r}
 last_decade$marine_common_year <- as.factor(last_decade$marine_common_year)
-SSWD_timeframe <- filter(clean_data, marine_common_year >= "2013" & marine_common_year <= "2016")
+SSWD_timeframe <- filter(ordered_data, marine_common_year >= "2013" & marine_common_year <= "2016")
 SSWD_timeframe$marine_common_year <- as.factor(SSWD_timeframe$marine_common_year)
 SSWD_timeframe_plot <- SSWD_timeframe %>% ggplot(aes(marine_common_year, log(total), group = marine_common_year)) + geom_boxplot(alpha = 0.4, fill = "grey67") +
   xlab("Year") + 
   ylab("log(Abundance)")
 SSWD_timeframe_plot
 
-ggsave(filename = "../../results/Exploratory_Analysis_results/SSWD_timeframe_plot.png",plot = SSWD_timeframe_plot, width = 5, height = 4)
+#ggsave(filename = "../../results/Exploratory_Analysis_results/SSWD_timeframe_plot.png",plot = SSWD_timeframe_plot, width = 5, height = 4)
 ```
 
-#### By species
+### Species abundance over 4 yr time frame of SSWD outbreak (2013-2016)
 ```{r}
 P.ochra_SSWD_tf <- filter(SSWD_timeframe, species_code == "P.ochraceus")
 K.tuni_SSWD_tf <- filter(SSWD_timeframe, species_code == "K.tunicata")
@@ -359,125 +358,246 @@ E.tros_SSWD_tf <- filter(SSWD_timeframe, species_code == "E.troschelii")
 #skim(E.tros_SSWD_tf)
 ```
 
+#### P. ochraceus (the species I'm primarily interested in) abundance over 4 year period of interest
 ```{r}
 P.ochra_SSWD_tf_plot <- P.ochra_SSWD_tf %>% ggplot(aes(marine_common_year, log(total), group = marine_common_year)) + 
-  geom_boxplot(fill = "orchid4", alpha = 0.4) +
+  geom_boxplot(fill = "darkmagenta", alpha = 0.7) +
   xlab("Year") + 
   ylab("log(P.ochraceus Abundance)")  
 P.ochra_SSWD_tf_plot
 
-ggsave(filename = "../../results/Exploratory_Analysis_results/P.ochra_SSWD_tf_plot.png",plot = P.ochra_SSWD_tf_plot, width = 5, height = 4)
+ggsave(filename = "../../results/Exploratory_Analysis_results/10.P.ochra_SSWDtf_plot.png",plot = P.ochra_SSWD_tf_plot, width = 5, height = 4)
 ```
 
+Let's try another way to visualize this:
+```{r}
+P.ochra_SSWD_tf %>% ggplot2::ggplot(aes(log(total))) + geom_density(aes(log(total))) + facet_wrap(~ marine_common_year, 1)
+
+#P.ochra_SSWD_tf %>% ggplot(aes(x=log(total), y=marine_common_year,fill=factor(..quantile..))) +   stat_density_ridges(
+  #  geom = "density_ridges_gradient", calc_ecdf = TRUE,
+   # quantiles = 4, quantile_lines = TRUE
+ # ) +
+ # scale_fill_brewer(name = "Quartiles",palette="BuPu") +
+  #ylab("Year") + 
+  #xlab("log(Abundance)")
+```
+
+#### K. tunicata abundance over 4 year period of interest
 ```{r}
 K.tuni_SSWD_tf_plot <- K.tuni_SSWD_tf %>% ggplot(aes(marine_common_year, log(total), group = marine_common_year)) + 
-  geom_boxplot(fill = "orange3", alpha = 0.4) +
+  geom_boxplot(fill = "salmon", alpha = 0.7) +
   xlab("Year") + 
   ylab("log(K.tunicata Abundance)")  
 K.tuni_SSWD_tf_plot
 
-ggsave(filename = "../../results/Exploratory_Analysis_results/K.tuni_SSWD_tf_plot.png",plot = K.tuni_SSWD_tf_plot, width = 5, height = 4)
+ggsave(filename = "../../results/Exploratory_Analysis_results/11.K.tuni_SSWDtf_plot.png",plot = K.tuni_SSWD_tf_plot, width = 5, height = 4)
 ```
 
+#### E. troschelii abundance over 4 year period of interest
 ```{r}
-E.tros_SSWD_tf_plot <- E.tros_SSWD_tf %>% ggplot(aes(marine_common_year, log(total), group = marine_common_year)) + geom_boxplot(fill = "skyblue3", alpha = 0.4) +
+E.tros_SSWD_tf_plot <- E.tros_SSWD_tf %>% ggplot(aes(marine_common_year, log(total), group = marine_common_year)) + geom_boxplot(fill = "royalblue", alpha = 0.7) +
   xlab("Year") + 
   ylab("log(E.troschelii Abundance)")  
 E.tros_SSWD_tf_plot
 
-ggsave(filename = "../../results/Exploratory_Analysis_results/E.tros_SSWD_tf_plot.png",plot = E.tros_SSWD_tf_plot, width = 5, height = 4)
+ggsave(filename = "../../results/Exploratory_Analysis_results/12.E.tros_SSWDtf_plot.png",plot = E.tros_SSWD_tf_plot, width = 5, height = 4)
 ```
 
-#### Breaking down years into sampling seasons
+### Breaking down into different states
+#### Doing the same as above (each species abundance over 4 year period of interest), but separating by state 
+
+#### First with P.ochraceus
+```{r}
+SSWD_timeframe_P.ochra <- filter(P.ochra_only, marine_common_year >= "2013" & marine_common_year <= "2016")
+
+SSWD_timeframe_P.ochra$marine_common_year <- as.factor(SSWD_timeframe_P.ochra$marine_common_year)
+
+P.ochra_state <- SSWD_timeframe_P.ochra %>% ggplot(aes(marine_common_year, log(total), group = marine_common_year)) + geom_boxplot(fill = "darkmagenta", alpha = 0.7) +   facet_wrap(~facet, 1) + theme(legend.position = "none",axis.title.x = element_blank()) +
+  xlab("Year") + 
+  ylab("log(Abundance)") + ggtitle("(A) P.ochraceus") + titletheme_small
+P.ochra_state
+```
+
+### With K.tuni
+```{r}
+SSWD_timeframe_K.tuni <- filter(K.tuni_only, marine_common_year >= "2013" & marine_common_year <= "2016")
+
+SSWD_timeframe_K.tuni$marine_common_year <- as.factor(SSWD_timeframe_K.tuni$marine_common_year)
+
+K.tuni_state <- SSWD_timeframe_K.tuni %>% ggplot(aes(marine_common_year, log(total), group = marine_common_year)) + geom_boxplot(fill = "salmon", alpha = 0.7) +   facet_wrap(~facet, 1) + theme(legend.position = "none",axis.title.x = element_blank()) + xlab("Year") + 
+  ylab("log(Abundance)") + ggtitle("(B) K.tunicata") + titletheme_small
+K.tuni_state
+```
+
+```{r}
+SSWD_timeframe_E.tros <- filter(E.tros_only, marine_common_year >= "2013" & marine_common_year <= "2016")
+
+SSWD_timeframe_E.tros$marine_common_year <- as.factor(SSWD_timeframe_E.tros$marine_common_year)
+
+E.tros_state <- SSWD_timeframe_E.tros %>% ggplot(aes(marine_common_year, log(total), group = marine_common_year)) + geom_boxplot(fill = "royalblue", alpha = 0.7) +   facet_wrap(~facet, 1) + theme(legend.position = "none") +
+  xlab("Year") + 
+  ylab("log(Abundance)") + ggtitle("(C) E.troschelii") + titletheme_small
+E.tros_state
+```
+
+```{r}
+grid.arrange(P.ochra_state,K.tuni_state,E.tros_state,nrow=3)
+ggsave(filename = "../../results/Exploratory_Analysis_results/13.Spp_SSWDtf_state_plot.png",plot = grid.arrange(P.ochra_state,K.tuni_state,E.tros_state,nrow=3), width = 6, height = 5)
+```
+
+---
+
+## Temporal Scale: Yr->Sampling szn
+#### Still just looking at P. ochraceus here, during 2013-2016
 ```{r}
 P.ochra_SSWD_tf_fig <- P.ochra_SSWD_tf %>% ggplot(aes(marine_common_season, log(total), group = marine_common_season)) + 
-  geom_boxplot(fill = "orchid4", alpha = 0.4) +
-  xlab("SeasonYear") + 
+  geom_boxplot(fill = "darkmagenta", alpha = 0.7) +
+  xlab("Season & Year") + 
   ylab("log(P.ochra Abundance)") +
   scale_x_continuous(breaks = c("Sp13" = 129, "Sm13" = 130, "Fl13" = 131, "Sp14" = 133, "Sm14" = 134, "Fl14" = 135, "Sp15" = 137, "Sm15" = 138, "Fl15" = 139, "Sp16" = 141, "Sm16" = 142, "Fl16" = 143))
 P.ochra_SSWD_tf_fig
 ```
-```{r}
-# Used to code above x-axis
-#numeric_seasons_code_key <- readRDS("../../data/processed_data/numeric_seasons_code_key.rds")
-#numeric_seasons_code_key
-```
+
+#### K. tuni from 2013-2016 by season
 ```{r}
 K.tuni_SSWD_tf_fig <- K.tuni_SSWD_tf %>% ggplot(aes(marine_common_season, log(total), group = marine_common_season)) + 
-  geom_boxplot(fill = "orange3", alpha = 0.4) +
-  xlab("SeasonYear") + 
+  geom_boxplot(fill = "salmon", alpha = 0.7) +
+  xlab("Season & Year") + 
   ylab("log(K.tuni Abundance)") +
   scale_x_continuous(breaks = c("Sp13" = 129, "Sm13" = 130, "Fl13" = 131, "Sp14" = 133, "Sm14" = 134, "Fl14" = 135, "Sp15" = 137, "Sm15" = 138, "Fl15" = 139, "Sp16" = 141, "Sm16" = 142, "Fl16" = 143)) 
 K.tuni_SSWD_tf_fig
 ```
 
+#### E. tros from 2013-2016 by season
 ```{r}
 E.tros_SSWD_tf_fig <- E.tros_SSWD_tf %>% ggplot(aes(marine_common_season, log(total), group = marine_common_season)) + 
-  geom_boxplot(fill = "skyblue3", alpha = 0.4) +
-  xlab("SeasonYear") + 
+  geom_boxplot(fill = "royalblue", alpha = 0.7) +
+  xlab("Season & Year") + 
   ylab("log(E.tros Abundance)") +
   scale_x_continuous(breaks = c("Sp13" = 129, "Sm13" = 130, "Fl13" = 131, "Sp14" = 133, "Sm14" = 134, "Fl14" = 135, "Sp15" = 137, "Sm15" = 138, "Fl15" = 139, "Sp16" = 141, "Sm16" = 142, "Fl16" = 143)) 
 E.tros_SSWD_tf_fig
 ```
 
+Because K.tuni isn't an echinoderm, it may be useful to look at the changes in Pisaster ochraceus compared to K.tuni as somewhat of a calibrater- for example, if both species' abundance go down, its not likely attributed to SSWD- perhaps an el nino event or other global affector like that
+
+#### P.ochra and K.tuni together
 ```{r}
 Season_year_boxplot <- grid.arrange(P.ochra_SSWD_tf_fig, K.tuni_SSWD_tf_fig, nrow=2)
 Season_year_boxplot
-ggsave(filename = "../../results/Exploratory_Analysis_results/Season_year_boxplot.png",plot = grid.arrange(P.ochra_SSWD_tf_fig, K.tuni_SSWD_tf_fig, nrow=2), width = 5, height = 4)
+ggsave(filename = "../../results/Exploratory_Analysis_results/14.Season_year_boxplot_po_kt.png",plot = grid.arrange(P.ochra_SSWD_tf_fig, K.tuni_SSWD_tf_fig, nrow=2), width = 5, height = 4)
 ```
 
 
-#### By state
-
+### Time frame: 2013-2016, time scale: season. Separated by state and species
 ```{r}
-P.ochra_SSWD_tf_fig + facet_wrap(~ state)
-ggsave(filename = "../../results/Exploratory_Analysis_results/P.ochra_SSWDtf_by_state.png",plot = P.ochra_SSWD_tf_fig + facet_wrap(~ state), width = 5, height = 4)
-
+P.ochra_SSWD_tf_fig + facet_wrap(~ facet)
+#ggsave(filename = "../../results/Exploratory_Analysis_results/P.ochra_SSWDtf_by_state.png",plot = P.ochra_SSWD_tf_fig + facet_wrap(~ facet), width = 5, height = 4)
 ```
 
+#### Just in California, by site (2013-2016, P. ochraceus only)
 ```{r}
 P.ochra_SSWDtf_CA <- filter(P.ochra_SSWD_tf, state == "CA")
-
 P.ochra_SSWDtf_CA_fig <- P.ochra_SSWDtf_CA %>% ggplot(aes(marine_common_year, log(total), group = marine_common_year)) + 
-  geom_boxplot(fill = "orchid4", alpha = 0.4) +
+  geom_boxplot(fill = "darkmagenta", alpha = 0.7) +
   xlab("Year") + 
   ylab("log(P.ochra Abundance)") 
 P.ochra_SSWDtf_CA_fig <- P.ochra_SSWDtf_CA_fig + facet_wrap(~ marine_sort_order)
+P.ochra_SSWDtf_CA_fig
+
+#ggsave(filename = "../../results/Exploratory_Analysis_results/P.ochra_SSWDtf_CA_fig.png",plot = P.ochra_SSWDtf_CA_fig, width = 5, height = 4) 
+```
+
+## Spp. prevalence during SSWD
+#### I should go back and plot each survey entry and color by species observed to get an idea of the ranges of each, but since I'm mostly concerned with what's going on during the SSWD event (2013-2016), I'm just going to plot those sampling events that fall within that range
+```{r}
+Species <- SSWD_timeframe$species_code
+broad_jitter <- ggplot(data = world) +
+    geom_sf() +
+  geom_jitter(data= SSWD_timeframe,aes(x=SSWD_timeframe$longitude, y=SSWD_timeframe$latitude,col=Species), size = 2, alpha = 0.25, width = 3,height=0.5) +
+  annotation_scale(location = "bl", width_hint = 0.3) +
+  coord_sf(xlim = c(-128, -114), ylim = c(32, 49.5), expand = FALSE) + 
+  xlab("Longitude") + 
+  ylab("Latitude") + scale_color_manual(values=species_colors) + theme(legend.position = "none")
+
+narrow_jitter <- ggplot(data = world) +
+    geom_sf() +
+  geom_jitter(data= SSWD_timeframe,aes(x=SSWD_timeframe$longitude, y=SSWD_timeframe$latitude,col=Species), size = 2, alpha = 0.3, width = 0.3) +
+  annotation_scale(location = "bl", width_hint = 0.3) +
+  coord_sf(xlim = c(-128, -115), ylim = c(32, 49.5), expand = FALSE) + 
+  xlab("Longitude") + 
+  ylab("")  + scale_color_manual(values=species_colors) + theme(legend.position = c(-117,42))
+
+gridExtra::grid.arrange(broad_jitter,narrow_jitter,nrow=1)
 ```
 
 ```{r}
-ggsave(filename = "../../results/Exploratory_Analysis_results/P.ochra_SSWDtf_CA_fig.png",plot = P.ochra_SSWDtf_CA_fig, width = 5, height = 4) 
+AK_zoom1_SSWD <- ggplot(data = world) +
+    geom_sf() +
+  geom_jitter(data= SSWD_timeframe,aes(x=SSWD_timeframe$longitude, y=SSWD_timeframe$latitude,col=Species,), size = 2, alpha = 0.55, width =1, height = 0.6) +
+  annotation_scale(location = "bl", width_hint = 0.3) +
+  coord_sf(xlim = c(-138.5, -131.5), ylim = c(55, 60.6), expand = FALSE) + 
+  xlab("Longitude") + 
+  ylab("Latitude") + 
+  scale_color_manual(values=species_colors) + 
+  theme(legend.position = c(0.5,0.815), legend.title =element_text(size=8,face="bold"),legend.text = element_text(size=7, face="bold"),axis.title.y = element_blank(),legend.background = element_rect(size=0.5, linetype="solid", colour = "black"))
+
+AK_zoom1_SSWD
+gridExtra::grid.arrange(broad_jitter,AK_zoom1_SSWD,nrow=1)
+
+ggsave(filename = "../../results/Exploratory_Analysis_results/14.SpeciesRangesSSWD.png",plot = gridExtra::grid.arrange(broad_jitter,AK_zoom1_SSWD,nrow=1), width = 5, height = 4) 
+
+#AK_zoom2_SSWD <- ggplot(data = world) +
+ #   geom_sf() +
+ # geom_point(data= SSWD_timeframe,aes(x=SSWD_timeframe$longitude, y=SSWD_timeframe$latitude,col=Species,), size = 2, alpha = 0.4) +
+ # annotation_scale(location = "bl", width_hint = 0.3) +
+ # coord_sf(xlim = c(-136, -135), ylim = c(56.6, 57.3), expand = FALSE) + 
+ # xlab("Longitude") + 
+  #ylab("Latitude") 
+  
+#grid.arrange(AK_zoom1_SSWD, AK_zoom2_SSWD, nrow = 2)
 ```
 
+## Sites with high counts 
+### There are a whole lot of sites that, even before SSWD, didn't have a ton of sea stars. It may be useful to isolate only those sites that had high abundance counts prior to SSWD (in 2013), assuming that is a good proxy for sites that are, overall, desirable for sea stars. 
 
-```{r}
-P.ochra_SSWDtf_CA %>% ggplot2::ggplot() + geom_histogram(aes(P.ochra_SSWDtf_CA$total)) + facet_wrap(~ marine_common_year, 1)
-```
-
+#### First, filtering for sites that had 10+ (P.ochra) sea stars in 2013
+Identifying those sites:
 ```{r}
 P.ochra_SSWDtf_highcount_temp <- P.ochra_SSWD_tf %>% filter(marine_common_year == "2013" & total >= 10)
 unique(P.ochra_SSWDtf_highcount_temp$site_code)
 ```
 
+Filtering for those sites so I can retain the data entries at those sites during AND after 2013. 
 ```{r}
 P.ochra_SSWDtf_highcount <- P.ochra_SSWD_tf %>% filter(site_code == "BML" | site_code == "BOA" | site_code == "BOB" | site_code == "BRN" | site_code == "CARP" | site_code == "CRCO" | site_code == "DAPT" | site_code == "DMN" | site_code == "END" | site_code == "ESP" | site_code == "FKC" | site_code == "FOG" | site_code == "GREN" | site_code == "HOP" | site_code == "KIB" | site_code == "MCR" | site_code == "MEN" | site_code == "MOL" | site_code == "MUSH" | site_code == "OCC" | site_code == "OLDS" | site_code == "PIRA" | site_code == "POP" | site_code == "SAGE" | site_code == "SBSE" | site_code == "SCT" | site_code == "SEA" | site_code == "SHCO" | site_code == "SWC" | site_code == "TPT" | site_code == "TRIS" | site_code == "WHPT")
-head(P.ochra_SSWDtf_highcount)
+#head(P.ochra_SSWDtf_highcount)
 ```
 
+Plotting this as a series of density graphs- LOVE using this quartile coloring function!!!!!
 ```{r}
-P.ochra_SSWDtf_highcount %>% ggplot2::ggplot() + geom_histogram(aes(P.ochra_SSWDtf_highcount$total)) + facet_wrap(~ marine_common_year, 1)
+P.ochra_SSWDtf_highcount %>% ggplot(aes(x=log(total), y=marine_common_year,fill=factor(..quantile..))) +   stat_density_ridges(
+    geom = "density_ridges_gradient", calc_ecdf = TRUE,
+    quantiles = 4, quantile_lines = TRUE
+  ) +
+  ylab("Year") + 
+  xlab("log(Abundance)") + 
+  scale_fill_manual(values=pisaster_colors,name = "Quartiles")
 ```
 
+Before there were just WAY too many individual sites to plot them all and make anything useful out of it... is that still the case?
 ```{r}
 P.ochra_SSWDtf_highcount_fig <- P.ochra_SSWDtf_highcount %>% ggplot(aes(marine_common_year, log(total), group = marine_common_year)) + 
-  geom_boxplot(fill = "orchid4", alpha = 0.4) +
+  geom_boxplot(fill = "darkmagenta", alpha = 0.7) +
   xlab("Year") + 
   ylab("log(P.ochra Abundance)") 
 P.ochra_SSWDtf_highcount_fig <- P.ochra_SSWDtf_highcount_fig + facet_wrap(~ marine_sort_order)
 P.ochra_SSWDtf_highcount_fig
 ```
 
-Over 25
+.... yes. 
+
+#### Now filtering for sites that had 25+ (P.ochra) sea stars in 2013
+(Repeat same analysis pipeline)
 ```{r}
 P.ochra_SSWDtf_highercount_temp <- P.ochra_SSWD_tf %>% filter(marine_common_year == "2013" & total >= 25)
 unique(P.ochra_SSWDtf_highercount_temp$site_code)
@@ -487,7 +607,7 @@ unique(P.ochra_SSWDtf_highercount_temp$site_code)
 P.ochra_SSWDtf_over25 <- P.ochra_SSWD_tf %>% filter(site_code == "BOB" | site_code == "BRN" | site_code == "CRCO" | site_code == "DMN" | site_code == "END" | site_code == "FKC" | site_code == "FOG" | site_code == "GREN" | site_code == "MCR" | site_code == "MOL" | site_code == "MUSH" | site_code == "OCC" | site_code == "PIRA" | site_code == "SCT" | site_code == "SEA" | site_code == "SHCO" | site_code == "SWC" | site_code == "TRIS")
 
 P.ochra_SSWDtf_over25_fig <- P.ochra_SSWDtf_over25 %>% ggplot(aes(marine_common_year, log(total), group = marine_common_year)) + 
-  geom_boxplot(fill = "orchid4", alpha = 0.4) +
+  geom_boxplot(fill = "darkmagenta", alpha = 0.7) +
   xlab("Year") + 
   ylab("log(P.ochra Abundance)") 
 P.ochra_SSWDtf_over25_fig <- P.ochra_SSWDtf_over25_fig + facet_wrap(~ marine_sort_order)
@@ -495,134 +615,299 @@ P.ochra_SSWDtf_over25_fig
 ```
 
 ```{r}
-ggsave(filename = "../../results/Exploratory_Analysis_results/P.ochra_SSWDtf_over25_fig.png",plot = P.ochra_SSWDtf_over25_fig, width = 5, height = 4) 
+P.ochra_SSWDtf_over25 %>% ggplot(aes(x=log(total), y=marine_common_year,fill=factor(..quantile..))) +   stat_density_ridges(
+    geom = "density_ridges_gradient", calc_ecdf = TRUE,
+    quantiles = 4, quantile_lines = TRUE
+  )+ 
+  scale_fill_manual(values=pisaster_colors,name = "Quartiles") +
+  ylab("Year") + 
+  xlab("log(Abundance)")
+P.ochra_SSWDtf_over25
+ggsave(filename = "../../results/Exploratory_Analysis_results/15.P.ochra_SSWDtf_over25_fig.png",plot = P.ochra_SSWDtf_over25_fig, width = 5, height = 4) 
 ```
 
-
-
-
-
-
+#### Now filtering for sites that had 40+ (P.ochra) sea stars in 2013
+(Repeat same analysis pipeline)
 ```{r}
-P.ochra_SSWDtf_highestcount_temp <- P.ochra_SSWD_tf %>% filter(marine_common_year == "2013" & total >= 40)
-unique(P.ochra_SSWDtf_highestcount_temp$site_code)
+P.ochra_SSWDtf_2ndhighestcount_temp <- P.ochra_SSWD_tf %>% filter(marine_common_year == "2013" & total >= 40)
+unique(P.ochra_SSWDtf_2ndhighestcount_temp$site_code)
 ```
 
 ```{r}
 P.ochra_SSWDtf_over40 <- P.ochra_SSWD_tf %>% filter(site_code == "DMN" | site_code == "END" | site_code == "FKC" | site_code == "FOG" | site_code == "GREN" | site_code == "MCR" | site_code == "OCC" | site_code == "SHCO")
 
 P.ochra_SSWDtf_over40_fig <- P.ochra_SSWDtf_over40 %>% ggplot(aes(marine_common_year, log(total), group = marine_common_year)) + 
-  geom_boxplot(fill = "orchid4", alpha = 0.4) +
+  geom_boxplot(fill = "darkmagenta", alpha = 0.7) +
   xlab("Year") + 
   ylab("log(P.ochra Abundance)") 
 P.ochra_SSWDtf_over40_fig <- P.ochra_SSWDtf_over40_fig + facet_wrap(~ marine_sort_order, nrow =2)
 P.ochra_SSWDtf_over40_fig
-ggsave(filename = "../../results/Exploratory_Analysis_results/P.ochra_SSWDtf_over40_fig.png",plot = P.ochra_SSWDtf_over40_fig, width = 5, height = 4)
+#ggsave(filename = "../../results/Exploratory_Analysis_results/P.ochra_SSWDtf_over40_fig.png",plot = P.ochra_SSWDtf_over40_fig, width = 5, height = 4)
+```
+
+```{r}
+P.ochra_SSWDtf_over40_plot <- P.ochra_SSWDtf_over40 %>% ggplot(aes(x=log(total), y=marine_common_year,fill=factor(..quantile..))) +   stat_density_ridges(
+    geom = "density_ridges_gradient", calc_ecdf = TRUE,
+    quantiles = 4, quantile_lines = TRUE
+  ) +
+  scale_fill_manual(values=pisaster_colors,name = "Quartiles") +
+  ylab("Year") + 
+  xlab("log(Abundance)")
+
+P.ochra_SSWDtf_over40_plot + facet_wrap(~ marine_sort_order, nrow =3) + theme(legend.position = "none",axis.title.y = element_blank(), title=element_blank())
+```
+
+#### Now filtering for sites that had 50+ (P.ochra) sea stars in 2013
+(Repeat same analysis pipeline)
+```{r}
+P.ochra_SSWDtf_highestcount_temp <- P.ochra_SSWD_tf %>% filter(marine_common_year == "2013" & total >= 50)
+unique(P.ochra_SSWDtf_highestcount_temp$site_code)
+```
+
+```{r}
+P.ochra_SSWDtf_over50 <- P.ochra_SSWD_tf %>% filter(site_code == "END" | site_code == "FKC" | site_code == "GREN" | site_code == "MCR" | site_code == "OCC" | site_code == "SHCO")
+
+P.ochra_SSWDtf_over50_fig <- P.ochra_SSWDtf_over50 %>% ggplot(aes(marine_common_year, log(total), group = marine_common_year)) + 
+  geom_boxplot(fill = "darkmagenta", alpha = 0.7) +
+  xlab("Year") + 
+  ylab("log(P.ochra Abundance)") 
+P.ochra_SSWDtf_over50_fig <- P.ochra_SSWDtf_over50_fig + facet_wrap(~ marine_sort_order, nrow =2)
+P.ochra_SSWDtf_over50_fig
+#ggsave(filename = "../../results/Exploratory_Analysis_results/P.ochra_SSWDtf_over40_fig.png",plot = P.ochra_SSWDtf_over40_fig, width = 5, height = 4)
+```
+
+```{r}
+P.ochra_SSWDtf_over50_plot <- P.ochra_SSWDtf_over50 %>% ggplot(aes(x=log(total), y=marine_common_year,fill=factor(..quantile..))) +   stat_density_ridges(
+    geom = "density_ridges_gradient", calc_ecdf = TRUE,
+    quantiles = 4, quantile_lines = TRUE
+  ) +
+  scale_fill_manual(values=pisaster_colors,name = "Quartiles") +
+  ylab("Year") + 
+  xlab("log(Abundance)")
+
+P.ochra_SSWDtf_over50_plot_final <- P.ochra_SSWDtf_over50_plot + facet_wrap(~ marine_sort_order, nrow =2) + theme(legend.position = "none")
+P.ochra_SSWDtf_over50_plot_final
+
+ggsave(filename = "../../results/Exploratory_Analysis_results/16.P.ochra_SSWDtf_over50_bysite_fig.png",plot = P.ochra_SSWDtf_over50_plot_final, width = 5, height = 4)
+
+```
+
+## Temporal changes in size
+It looks like sites are recoving by 2016- if this is the case, we should see the size class distribution change to feature more small individuals that matches the trends of recovering abundance
+
+#### Start with a histogram of the two variables that describe size classes of P.ochra
+```{r}
+P.ochra_only %>% ggplot2::ggplot() + geom_histogram(aes(size_bin))
+P.ochra_only %>% ggplot2::ggplot() + geom_histogram(aes(size_sort_order))
+```
+size_sort_order is a less-informative version of size_bin, so I am going to predominantely (or even exclusively) focus on size_bin.
+
+### Changes in size across all years surveyed
+```{r}
+P.ochra_only %>% ggplot(aes(marine_common_year, size_bin, group = marine_common_year)) + 
+  geom_boxplot(fill = "darkmagenta", alpha = 0.7) +
+  xlab("Year") + 
+  ylab("Size Class")  
+```
+
+It is actually really useful to see how steady the size classes were before SSWD, so I may include a few more years before and after the main SSWD window (2013-2016) to properly display this.
+
+### Narrowing the temporal range
+#### Going to try both 2010-2016 and 2010-2018
+```{r}
+f2010to2016_P.ochra <- P.ochra_only
+
+f2010to2016_P.ochra$marine_common_year <- as.numeric(f2010to2016_P.ochra$marine_common_year)
+f2010to2018_P.ochra <- f2010to2016_P.ochra
+f2010to2016_P.ochra <- filter(f2010to2016_P.ochra, marine_common_year >= "2010" & marine_common_year <= "2016")
+f2010to2018_P.ochra <- filter(f2010to2018_P.ochra, marine_common_year >= "2010" & marine_common_year <= "2018")
+
+f2010to2016_P.ochra$marine_common_year <- as.factor(f2010to2016_P.ochra$marine_common_year)
+f2010to2018_P.ochra$marine_common_year <- as.factor(f2010to2018_P.ochra$marine_common_year)
+
+# quick plots just to get an idea
+f2010to2018_P.ochra %>% ggplot(aes(size_sort_order, marine_common_year)) + geom_density_ridges(alpha = 0.3)
+
+f2010to2016_P.ochra %>% ggplot(aes(size_sort_order, marine_common_year)) + geom_density_ridges(alpha = 0.3)
+
+SSWD_timeframe_P.ochra %>% ggplot(aes(size_bin, marine_common_year)) + geom_density_ridges(alpha = 0.3)
+```
+
+#### Would be useful to plot size_bin trends and abundance trends side by side
+Making new color palette for size bin plotting
+```{r}
+pisaster_size_colors2 <- c("lightsteelblue1","skyblue","slateblue3","slateblue4")
+pisaster_size_colors <- c("lavender","mediumpurple3","slateblue3","slateblue4")
+```
+
+```{r}
+# Abundance plot
+total_plot_all <- f2010to2018_P.ochra %>% 
+  ggplot(aes(x=log(total), y=marine_common_year,fill=factor(..quantile..))) +
+  stat_density_ridges(geom = "density_ridges_gradient", calc_ecdf = TRUE, 
+                      quantiles = 4, quantile_lines = TRUE,scale =1.7) + 
+   xlim(-1,5.5) + 
+  theme(legend.position = "none") + 
+  labs(x = "log(Abundance)", y = "Year") + 
+  scale_fill_manual(values=pisaster_colors) + ggtitle("(A)") + titletheme
+
+# Size Bin plot
+sizebin_plot_all <- f2010to2018_P.ochra %>% 
+  ggplot(aes(x=size_bin, y=marine_common_year,fill=factor(..quantile..))) +
+  stat_density_ridges(
+    geom = "density_ridges_gradient", calc_ecdf = TRUE,
+    quantiles = 4, quantile_lines = TRUE) +
+  xlim(-10,240) +
+  theme(legend.position = "none",axis.title.y = element_blank()) + 
+  labs(x = "Size Class", y = "Year") + 
+  scale_fill_manual(values=pisaster_size_colors) + ggtitle("(B)") + titletheme
+
+# putting them together
+grid.arrange(total_plot_all,sizebin_plot_all,nrow=1)
+
+ggsave(filename = "../../results/Exploratory_Analysis_results/17.P.ochra_size.vs.abundance_density_allsites.png",plot = grid.arrange(total_plot_all,sizebin_plot_all,nrow=1), width = 6, height = 4)
 ```
 
 
+### Now just for sites with high abundance
+```{r}
+tf_2010_2018 <- filter(ordered_data, marine_common_year >= "2010" & marine_common_year <= "2018")
+P.ochra_tf_2010_2018 <- filter(tf_2010_2018, species_code == "P.ochraceus")
+```
 
+### Sites with 40+
+```{r}
+P.ochra_tf_10_18_min40_temp <- P.ochra_tf_2010_2018 %>% filter(marine_common_year == "2013" & total >= 40)
+unique(P.ochra_tf_10_18_min40_temp$site_code)
+```
 
+```{r}
+P.ochra_tf_10_18_min40 <- P.ochra_tf_2010_2018 %>% filter(site_code == "DMN" | site_code == "END" | site_code == "FKC" | site_code == "FOG" | site_code == "GREN" | site_code == "MCR" | site_code == "OCC" | site_code == "SHCO")
 
+P.ochra_tf_10_18_min40_fig <- P.ochra_tf_10_18_min40 %>% ggplot(aes(marine_common_year, log(total), group = marine_common_year)) + 
+  geom_boxplot(fill = "darkmagenta", alpha = 0.7) +
+  xlab("Year") + 
+  ylab("log(P.ochra Abundance)") 
 
+P.ochra_tf_10_18_min40_fig <- P.ochra_tf_10_18_min40_fig + facet_wrap(~ marine_sort_order, nrow =2)
+P.ochra_tf_10_18_min40_fig
 
+#ggsave(filename = "../../results/Exploratory_Analysis_results/P.ochra_SSWDtf_over40_fig.png",plot = P.ochra_SSWDtf_over40_fig, width = 5, height = 4)
+```
 
+```{r}
+# Abundance plot
+P.ochra_tf_10_18_min40$marine_common_year <- as.factor(P.ochra_tf_10_18_min40$marine_common_year)
 
+total_plot_over40 <- P.ochra_tf_10_18_min40 %>% 
+  ggplot(aes(x=log(total), y=marine_common_year,fill=factor(..quantile..))) +
+  stat_density_ridges(geom = "density_ridges_gradient", calc_ecdf = TRUE, 
+                      quantiles = 4, quantile_lines = TRUE,scale =1.7) + 
+  # xlim(-1,5.5) + 
+  theme(legend.position = "none") + 
+  labs(x = "log(Abundance)", y = "Year") + 
+  scale_fill_manual(values=pisaster_colors)
 
+# Size Bin plot
+sizebin_plot_over40 <- P.ochra_tf_10_18_min40 %>% 
+  ggplot(aes(x=size_bin, y=marine_common_year,fill=factor(..quantile..))) +
+  stat_density_ridges(
+    geom = "density_ridges_gradient", calc_ecdf = TRUE,
+    quantiles = 4, quantile_lines = TRUE) +
+ # xlim(-10,240) +
+  theme(legend.position = "none",axis.title.y = element_blank()) + 
+  labs(x = "Size Class", y = "Year") + 
+  scale_fill_manual(values=pisaster_size_colors)
 
+# putting them together
+grid.arrange(total_plot_over40,sizebin_plot_over40,nrow=1)
+
+sizebin_plot_over40 + 
+  scale_fill_manual(values=pisaster_size_colors) + facet_wrap(~marine_sort_order,nrow=2)
+
+#ggsave(filename = "../../results/Exploratory_Analysis_results/P.ochra_size.vs.abundance_density_over40.png",plot = grid.arrange(size_bin_plot,total_plot,nrow=1), width = 6, height = 4)
+```
+
+### Sites with 50+
+```{r}
+P.ochra_tf_10_18_min50_temp <- P.ochra_tf_2010_2018 %>% filter(marine_common_year == "2013" & total >= 50)
+unique(P.ochra_tf_10_18_min50_temp$site_code)
+```
+
+```{r}
+P.ochra_tf_10_18_min50 <- P.ochra_tf_2010_2018 %>% filter(site_code == "END" | site_code == "FKC" | site_code == "GREN" | site_code == "MCR" | site_code == "OCC" | site_code == "SHCO")
+
+P.ochra_tf_10_18_min50_fig <- P.ochra_tf_10_18_min50 %>% ggplot(aes(marine_common_year, log(total), group = marine_common_year)) + 
+  geom_boxplot(fill = "darkmagenta", alpha = 0.7) +
+  xlab("Year") + 
+  ylab("log(P.ochra Abundance)") 
+
+P.ochra_tf_10_18_min50_fig <- P.ochra_tf_10_18_min50_fig + facet_wrap(~ marine_sort_order, nrow =2)
+P.ochra_tf_10_18_min50_fig
+
+# ggsave(filename = "../../results/Exploratory_Analysis_results/P.ochra_SSWDtf_over40_fig.png",plot = P.ochra_SSWDtf_over40_fig, width = 5, height = 4)
+```
+
+```{r}
+# Abundance plot
+P.ochra_tf_10_18_min50$marine_common_year <- as.factor(P.ochra_tf_10_18_min50$marine_common_year)
+
+total_plot_over50 <- P.ochra_tf_10_18_min50 %>% 
+  ggplot(aes(x=log(total), y=marine_common_year,fill=factor(..quantile..))) +
+  stat_density_ridges(geom = "density_ridges_gradient", calc_ecdf = TRUE, 
+                      quantiles = 4, quantile_lines = TRUE,scale =1.7) + 
+  # xlim(-1,5.5) + 
+  theme(legend.position = "none") + 
+  labs(x = "log(Abundance)", y = "Year") + 
+  scale_fill_manual(values=pisaster_colors) + ggtitle("(A)") + titletheme
+
+# Size Bin plot
+sizebin_plot_over50 <- P.ochra_tf_10_18_min50 %>% 
+  ggplot(aes(x=size_bin, y=marine_common_year,fill=factor(..quantile..))) +
+  stat_density_ridges(
+    geom = "density_ridges_gradient", calc_ecdf = TRUE,
+    quantiles = 4, quantile_lines = TRUE) +
+ # xlim(-10,240) +
+  theme(legend.position = "none",axis.title.y = element_blank()) + 
+  labs(x = "Size Class", y = "Year") + 
+  scale_fill_manual(values=pisaster_size_colors) + ggtitle("(B)") + titletheme
+
+sizebin_plot_over50_2 <- P.ochra_tf_10_18_min50 %>% 
+  ggplot(aes(x=size_bin, y=marine_common_year,fill=factor(..quantile..))) +
+  stat_density_ridges(
+    geom = "density_ridges_gradient", calc_ecdf = TRUE,
+    quantiles = 4, quantile_lines = TRUE) +
+ # xlim(-10,240) +
+  theme(legend.position = "none",axis.title.y = element_blank()) + 
+  labs(x = "Size Class", y = "Year") + 
+  scale_fill_manual(values=pisaster_size_colors)
+
+# putting them together
+grid.arrange(total_plot_over50,sizebin_plot_over50,nrow=1)
+
+sizebin_plot_over50_2 + 
+  scale_fill_manual(values=pisaster_size_colors) + facet_wrap(~marine_sort_order,nrow=2)
+
+ggsave(filename = "../../results/Exploratory_Analysis_results/18.P.ochra_size_abundance_density_over50.png",plot = grid.arrange(total_plot_over50,sizebin_plot_over50,nrow=1), width = 6, height = 4)
+```
 
 
 
 
 ```{r}
-SSWD_timeframe %>% ggplot(aes(marine_common_year, log(total), group = marine_common_year, col=marine_common_year)) + geom_boxplot() +   facet_wrap(~state, 1) + theme(legend.position = "none")
+myPalette <- colorRampPalette(viridis_pal(begin = 0, end = 1,option = "plasma")(8),)
+title <- "log(Size \n Class)"
+sc <- scale_colour_gradientn(title,colours = myPalette(50))
+
+total_manhattanplot <- f2010to2018_P.ochra %>% ggplot(aes(x = marine_common_season, y = total, color = log(size_bin))) + geom_jitter(alpha = 0.8, size=3, width = 0.6, height =0.2) + geom_smooth(method = "loess", se = TRUE, colour = "black", span = 0.3) + sc + xlab("Season & Year") + ylab("Abundance") + theme(legend.position = "none") + ggtitle("(A)") + titletheme + scale_x_continuous(breaks = c("Sp10" = 120, "Sm12" = 127, "Fl14" = 135, "Sm16" = 142, "Fl18" = 149)) #+ scale_x_continuous(breaks = c("Sp10" = 120, "Sm10" = 121, "Fl10" = 122, "Sp11" = 123, "Sm11" = 124, "Fl11" = 125, "Sp12" = 126, "Sm12" = 127, "Fl12" = 128, "Sp13" = 129, "Sm13" = 130, "Fl12" = 131, "Sp13" = 129, "Sm13" = 130, "Fl13" = 131, "Sp14" = 133, "Sm14" = 134, "Fl14" = 135, "Sp15" = 137, "Sm15" = 138, "Fl15" = 139, "Sp16" = 141, "Sm16" = 142, "Fl16" = 143, "Sp17" = 144, "Sm17" = 145, "Fl17" = 146, "Sp18" = 147, "Sm18" = 148, "Fl18" = 149, "Sp19" = 150)) 
+
+logtotal_manhattanplot <- f2010to2018_P.ochra %>% ggplot(aes(x = marine_common_season, y = log(total), color = log(size_bin))) + geom_jitter(alpha = 0.8, size=3, width = 0.6, height =0.2) + geom_smooth(method = "loess", se = TRUE, colour = "black", span = 0.3) + sc + xlab("Season & Year") + ylab("log(Abundance)") + ggtitle("(B)") + titletheme + scale_x_continuous(breaks = c("Fl11" = 125, "Fl14" = 135,"Sm17" = 145))
+
+
+grid.arrange(total_manhattanplot,logtotal_manhattanplot,nrow =1)
+
+
+ggsave(filename = "../../results/Exploratory_Analysis_results/19.P.ochra_size_abundance_scatter.png",plot = grid.arrange(total_manhattanplot,logtotal_manhattanplot,nrow =1), width = 6, height = 4)
 ```
 
----
-
-#### Fitting a linear model
-```{r}
-SSWD_timeframe %>% ggplot(aes(marine_common_year, log(total), col=state)) +  geom_jitter(width = 0.45, alpha = 0.25) +
-  facet_wrap(~state, 1) + geom_smooth(method = "lm", col="black") + theme(legend.position = "none")
-```
-
-#### Just California
-```{r}
-SSWD_timeframe_CA <- filter(SSWD_timeframe, state == "CA")
-SSWD_timeframe_CA$marine_common_year <- as.factor(SSWD_timeframe_CA$marine_common_year)
-SSWD_timeframe_CA %>% ggplot(aes(marine_common_year, log(total), col=marine_common_year)) +  geom_jitter(width = 0.5, alpha = 0.25) + geom_smooth(method = "lm", col="red") + theme(legend.position = "none")
-```
-
----
-
-#### Doing the same as above, but separating by species, with a primary focus on Pisaster ochraceus (the organism I'm studing in my research)
-```{r}
-SSWD_timeframe_P.ochra <- filter(P.ochra_only, marine_common_year >= "2013" & marine_common_year <= "2016")
-
-SSWD_timeframe_P.ochra$marine_common_year <- as.factor(SSWD_timeframe_P.ochra$marine_common_year)
-
-SSWD_timeframe_P.ochra %>% ggplot(aes(marine_common_year, log(total), group = marine_common_year, col=marine_common_year)) + geom_boxplot() +   facet_wrap(~state, 1) + theme(legend.position = "none")
-```
-
-```{r}
-SSWD_timeframe_K.tuni <- filter(K.tuni_only, marine_common_year >= "2013" & marine_common_year <= "2016")
-
-SSWD_timeframe_K.tuni$marine_common_year <- as.factor(SSWD_timeframe_K.tuni$marine_common_year)
-
-SSWD_timeframe_K.tuni %>% ggplot(aes(marine_common_year, log(total), group = marine_common_year, col=marine_common_year)) + geom_boxplot() +   facet_wrap(~state, 1) + theme(legend.position = "none")
-```
-
-```{r}
-SSWD_timeframe_E.tros <- filter(E.tros_only, marine_common_year >= "2013" & marine_common_year <= "2016")
-
-SSWD_timeframe_E.tros$marine_common_year <- as.factor(SSWD_timeframe_E.tros$marine_common_year)
-
-SSWD_timeframe_E.tros %>% ggplot(aes(marine_common_year, log(total), group = marine_common_year, col=marine_common_year)) + geom_boxplot() +   facet_wrap(~state, 1) + theme(legend.position = "none")
-```
-OH! I didn't catch that the reason why E.tros had such few survey sightings was because its range appears to only be in Alaska. Speaking of which....
-
----
-
-#### I should go back and plot each survey entry and color by species observed to get an idea of the ranges of each. 
-```{r}
-Species <- SSWD_timeframe$species_code
-broad_jitter <- ggplot(data = world) +
-    geom_sf() +
-  geom_jitter(data= SSWD_timeframe,aes(x=SSWD_timeframe$longitude, y=SSWD_timeframe$latitude,col=Species), size = 2, alpha = 0.3, width = 3) +
-  annotation_scale(location = "bl", width_hint = 0.3) +
-  coord_sf(xlim = c(-128, -115), ylim = c(32, 49.5), expand = FALSE) + 
-  xlab("Longitude") + 
-  ylab("Latitude")
-
-narrow_jitter <- ggplot(data = world) +
-    geom_sf() +
-  geom_jitter(data= SSWD_timeframe,aes(x=SSWD_timeframe$longitude, y=SSWD_timeframe$latitude,col=Species), size = 2, alpha = 0.3, width = 0.3) +
-  annotation_scale(location = "bl", width_hint = 0.3) +
-  coord_sf(xlim = c(-128, -115), ylim = c(32, 49.5), expand = FALSE) + 
-  xlab("Longitude") + 
-  ylab("Latitude")
-
-gridExtra::grid.arrange(broad_jitter,narrow_jitter,nrow=2)
-```
-
-```{r}
-AK_zoom1_SSWD <- ggplot(data = world) +
-    geom_sf() +
-  geom_point(data= SSWD_timeframe,aes(x=SSWD_timeframe$longitude, y=SSWD_timeframe$latitude,col=Species,), size = 2, alpha = 0.4) +
-  annotation_scale(location = "bl", width_hint = 0.3) +
-  coord_sf(xlim = c(-140, -130), ylim = c(55, 62), expand = FALSE) + 
-  xlab("Longitude") + 
-  ylab("Latitude") 
-  
-
-AK_zoom2_SSWD <- ggplot(data = world) +
-    geom_sf() +
-  geom_point(data= SSWD_timeframe,aes(x=SSWD_timeframe$longitude, y=SSWD_timeframe$latitude,col=Species,), size = 2, alpha = 0.4) +
-  annotation_scale(location = "bl", width_hint = 0.3) +
-  coord_sf(xlim = c(-136, -135), ylim = c(56.6, 57.3), expand = FALSE) + 
-  xlab("Longitude") + 
-  ylab("Latitude") 
-  
-grid.arrange(AK_zoom1_SSWD, AK_zoom2_SSWD, nrow = 2)
-```
 

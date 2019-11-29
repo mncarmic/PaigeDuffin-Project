@@ -182,12 +182,6 @@ null_accuracy_subsetA <- measureACC("SanFran_2_GovtPt", data_subsetA$bioregion)
 null_accuracy_subsetA
 ```
 
-Null Model- Data Subset A
-```{r}
-library("mlr")
-null_accuracy_subsetB <- measureACC("SanFran_2_GovtPt", data_subsetB$bioregion)
-null_accuracy_subsetB
-```
 
 Single predictor models- Data Subset A
 ```{r}
@@ -234,6 +228,13 @@ data_train_subsetB = data_subsetB[trainset_subsetB,] #extract observations/rows 
 data_test_subsetB = data_subsetB[-trainset_subsetB,] #do the same for the test set
 ```
 
+Null Model- Data Subset B
+```{r}
+library("mlr")
+null_accuracy_subsetB <- measureACC("SanFran_2_GovtPt", data_subsetB$bioregion)
+null_accuracy_subsetB
+```
+
 Single predictor models- Data Subset B
 ```{r}
 #There is probably a nicer tidyverse way of doing this. I just couldn't think of it, so did it this way.
@@ -278,11 +279,15 @@ fit2 = caret::train(bioregion ~ ., data=data_train_subsetB, method="ranger", trC
 plot(fit2)
 ```
 
+```{r}
+?expand.grid
+```
+
 
 Boosted tree ensemble
 ```{r}
 library(gbm)
-gbmGrid <- expand.grid(interaction.depth = seq(1, 7, by = 2), n.trees = 300, shrinkage = c(0.1, 0.01), n.minobsinnode = c(2,4,6))
+gbmGrid <- expand.grid(interaction.depth = seq(1, 7, by = 2), n.trees = 10, shrinkage = c(0.1, 0.01), n.minobsinnode = c(2,4,6))
 fit3 = caret::train(bioregion ~ ., data=data_train_subsetB, method="gbm", trControl = fitControl, verbose=FALSE, tuneGrid = gbmGrid) 
 plot(fit3)
 ```
@@ -298,15 +303,102 @@ plot(fit4)
 ```
 
 Discriminant analysis
-Don’t know if I should use method=“pda” or method=“pda2”, so I’m doing both.
 ```{r}
 #write code that trains a pda model, use tuneLength 20. Save as fit5 and plot.
 set.seed(1111) #makes each code block reproducible
-tuning_grid <- expand.grid(lambda = seq(0,1,by=0.01))
-fit5 = caret::train(bioregion ~ ., data=data_train_reduced, method="pda",  trControl = fitControl, tuneGrid = tuning_grid, na.action = na.pass, tuneLength = 20) 
+tuning_grid <- expand.grid(lambda = seq(0,1,by=0.05))
+fit5 = caret::train(bioregion ~ ., data=data_train_subsetB, method="pda",  trControl = fitControl, tuneGrid = tuning_grid, na.action = na.pass, tuneLength = 20) 
 #plot model results.
 plot(fit5)
 ```
+
+Comparing model performance
+```{r randomforest-3, echo=TRUE}
+resamps <- resamples(list(tree = fit1,
+                          RF1 = fit2,
+                          GBM = fit3,
+                          RF2 = fit4, 
+                          PDA = fit5))
+bwplot(resamps)
+```
+
+```{r randomforest-3, echo=TRUE}
+resamps_no_tree <- resamples(list(RF1 = fit2,
+                          GBM = fit3,
+                          RF2 = fit4, 
+                          PDA = fit5))
+bwplot(resamps_no_tree)
+```
+
+
+This suggests that while they are all pretty close, it seems like **GBM** (`fit3`) may be the best
+
+# Evaluating the final model (boosted tree ensemble)
+
+Model uncertainty in the predictions is shown in the previous plot.
+
+For categorical outcomes, we can't plot residuals. But we can look at the final "2x2" (in this case, a 4x4) table (the confusion matrix) and compare true versus predicted outcomes and see if it shows any pattern.
+
+```{r}
+library('tidyr')
+library('dplyr')
+library('forcats')
+library('ggplot2')
+library('knitr')
+library('caret')
+#library('doParallel')
+library('rpart')
+library('rpart.plot')
+library('mda')
+library('ranger')
+library('e1071')
+```
+
+
+
+```{r}
+#Write code to get model predictions for the outcome on the training data..
+predicted <- predict(fit3, data_train_subsetB)
+confusion(data_train_subsetB$bioregion, predicted) #generates confusion matrix
+# generating table with all results, with TRUE/FALSE accuracy column to compute ACC
+train_data_results <- tibble("Actual" = data_train_subsetB$bioregion, "Predicted" = predicted)
+measureACC(train_data_results$Predicted, train_data_results$Actual)
+#use predicted and actual outcomes, make a table and compute accuracy.
+```
+
+
+```{r predict}
+#copy and paste the code from above, but now do it for the test set.
+#Write code to get model predictions for the outcome on the training data..
+predicted_final <- predict(fit3, data_test_subsetB)
+confusion(data_test_subsetB$bioregion, predicted_final) #generates confusion matrix
+# generating table with all results, with TRUE/FALSE accuracy column to compute ACC
+test_data_results <- tibble("Actual" = data_test_subsetB$bioregion, "Predicted" = predicted_final)
+measureACC(test_data_results$Predicted, test_data_results$Actual)
+#use predicted and actual outcomes, make a table and compute accuracy.
+```
+
+Obviously accuracy went down, but only by ~1%, and its still very high. 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

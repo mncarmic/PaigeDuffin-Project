@@ -171,7 +171,7 @@ print(sprintf('RMSE of baseline model is %f',base_RMSE))
 ```{r}
 #There is probably a nicer tidyverse way of doing this. I just couldn't think of it, so did it this way.
 set.seed(1111) #makes each code block reproducible
-fitControl <- trainControl(method="repeatedcv",number=5,repeats=5) #setting CV method for caret
+fitControl <- caret::trainControl(method="repeatedcv",number=5,repeats=5) #setting CV method for caret
 Npred <- ncol(data_train)-1 # number of predictors
 resultmat <- data.frame(Variable = names(data_train)[-1], RMSE = rep(0,Npred)) #store values for RMSE for each variable
 for (n in 2:ncol(data_train)) #loop over each predictor. For this to work, outcome must be in 1st column
@@ -189,7 +189,7 @@ resultmat_ordered$RMSE <- round(resultmat_ordered$RMSE,3)
 ```
 
 ```{r}
-Single_Predictor_RMSE <- resultmat_ordered %>% ggplot(aes(x = Variable, y=RMSE, label =RMSE)) + ylim(16.5,17.5) + geom_hline(yintercept=base_RMSE,color='red', size=2,linetype="dashed") +   geom_label(stat='identity',color="black", size=3, face="bold",fill="lightgrey") + theme(title = element_text(size=12), axis.title.y = element_text(size=14),axis.title.x = element_blank(),axis.text.y = element_text(size=12),axis.text.x = element_text(size=8)) + ggtitle("(A) Single Predictor Models")
+Single_Predictor_RMSE <- resultmat_ordered %>% ggplot(aes(x = Variable, y=RMSE, label =RMSE)) + ylim(16.5,17.5) + geom_hline(yintercept=base_RMSE,color='red', size=2,linetype="dashed") +   geom_label(stat='identity',color="black", size=4, face="bold",fill="lightgrey") + theme(title = element_text(size=12), axis.title.y = element_text(size=14),axis.title.x = element_blank(),axis.text.y = element_text(size=12),axis.text.x = element_text(size=8)) + ggtitle("(A) Single Predictor Models")
 
 Single_Predictor_RMSE
 
@@ -201,7 +201,7 @@ Single_Predictor_RMSE
 
 ```{r}
 set.seed(1111) #makes each code block reproducible
-fitControl <- trainControl(method="repeatedcv",number=5,repeats=5) 
+fitControl <- caret::trainControl(method="repeatedcv",number=5,repeats=5) 
 fit2 <- train(total ~ ., data = data_train, method = "lm", trControl = fitControl) 
 fit3 <- train(total ~ ., data = data_train, method = "knn", trControl = fitControl)
 fit4 <- train(total ~ ., data = data_train, method = "earth", trControl = fitControl) 

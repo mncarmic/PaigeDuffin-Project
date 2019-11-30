@@ -75,7 +75,21 @@ names(clean_data)
 
 # Bioregion
 ```{r}
-bioregion_histogram <- clean_data %>% ggplot() + geom_bar(aes(bioregion),fill=bioreg_colours)
+summary(clean_data$bioregion)
+```
+
+
+```{r}
+bioregion_counts <- clean_data %>% mutate(bioregion = recode(bioregion, "AK_2_BritColumb"="AK to \n British \n Columbia","ChannelIsl_South"="Channel \n Islands \n South","SalishSea_WA"="Salish \n Sea, WA","OlyCstWA_2_SanFran"="Olympic \n Coast WA \n to SanFran","SanFran_2_GovtPt"="SanFran to \n Gov't Point","GovtPt_2_Mexico"="Gov't Point \n to Mexico"))
+skim(bioregion_counts$bioregion)
+
+bioregion_counts_ordered <- bioregion_counts %>%
+  mutate(bioregion = factor(bioregion, levels = c("AK to \n British \n Columbia","Salish \n Sea, WA","Olympic \n Coast WA \n to SanFran","SanFran to \n Gov't Point","Channel \n Islands \n South","Gov't Point \n to Mexico"))) %>%
+  arrange(bioregion) 
+```
+
+```{r}
+bioregion_histogram <- bioregion_counts_ordered %>% ggplot() + geom_bar(aes(bioregion),fill=bioreg_colours) #+  theme(axis.text.x = element_text(angle=25, hjust=1))
 bioregion_histogram 
 ggsave(filename = "../../results/Categorical_Outcome_Modeling_results/1.bioregion_histogram.png",plot =bioregion_histogram , width = 5, height = 4)
 ```
@@ -84,10 +98,10 @@ Data visualization
 #write code that produces plots showing our outcome of interest on the x-axis and each numeric predictor on the y-axis.
 
 ```{r}
-clean_data$season_sequence <- as.factor(clean_data$season_sequence)
-numer_data <- clean_data %>% select_if(is.numeric) 
+bioregion_counts_ordered$season_sequence <- as.factor(bioregion_counts_ordered$season_sequence)
+numer_data <- bioregion_counts_ordered %>% select_if(is.numeric) 
 
-numer_data$bioregion <- clean_data$bioregion
+numer_data$bioregion <- bioregion_counts_ordered$bioregion
 
 numer_data <- numer_data %>% dplyr::select(-size_sort_order)
 ```
@@ -140,7 +154,7 @@ ggsave(filename = "../../results/Categorical_Outcome_Modeling_results/4.spp.rel_
 
 ## Characterizing categorical data
 ```{r}
-categ_data <- clean_data %>% select_if(is.factor) 
+categ_data <- bioregion_counts_ordered %>% select_if(is.factor) 
 categ_data <- categ_data %>% dplyr::select(-marine_site_name,-season_sequence,-marine_season_code)
 names(categ_data)
 ```
@@ -246,7 +260,12 @@ Singlepred_df_ordered <- Singlepred_df %>%
   mutate(Variable = factor(Variable, levels = c("size_bin","total","marine_common_year","species_code","island","method_code_IP_other","method_code","group_code_UCSC_other","state","marine_season_code","group_code","season_name","season_sequence","marine_common_season","site_code","mpa_region","georegion","latitude", "longitude","marine_sort_order"))) %>%
   arrange(Variable)
 
-Single_Predictor_Accuracy <- Singlepred_df_ordered %>% ggplot(aes(x = Variable, y=Accuracy, label =Accuracy)) + geom_hline(yintercept=null_accuracy_treefit,color='red', size=2,linetype="dashed") +   geom_label(stat='identity',color="black", size=4,fill="lightgrey") + theme(title = element_text(size=12), axis.title.y = element_text(size=14),axis.title.x = element_blank(),axis.text.y = element_text(size=12),axis.text.x = element_text(size=8,angle=40,hjust=1)) + ggtitle("Single Predictor Models (pre-subsetting)") + geom_vline(xintercept=11.5,color="deepskyblue",size=1.5,linetype="dashed")
+Single_Predictor_Accuracy <- Singlepred_df_ordered %>% 
+  ggplot(aes(x = Variable, y=Accuracy, label =Accuracy)) + 
+  geom_hline(yintercept=null_accuracy_treefit,color='red', size=2,linetype="dashed") +
+  geom_vline(xintercept=11.5,color="deepskyblue",size=1.5,linetype="dashed") +
+  geom_label(stat='identity',color="black", size=4,fill="lightgrey") + 
+  theme(title = element_text(size=12), axis.title.y = element_text(size=14),axis.title.x = element_blank(),axis.text.y = element_text(size=12),axis.text.x = element_text(size=8,angle=40,hjust=1))
 
 Single_Predictor_Accuracy
 ggsave(filename = "../../results/Categorical_Outcome_Modeling_results/8.single_predictor_accuracy.png",plot = Single_Predictor_Accuracy, width = 6, height = 4)
@@ -329,8 +348,8 @@ data_test_subsetB = data_subsetB[-trainset_subsetB,] #do the same for the test s
 Null Model- Data Subset B
 ```{r}
 library("mlr")
-null_accuracy_subsetB <- measureACC("SanFran_2_GovtPt", data_subsetB$bioregion)
-null_accuracy_subsetB
+null_accuracy_train_subsetB <- measureACC("SanFran_2_GovtPt", data_train_subsetB$bioregion)
+null_accuracy_train_subsetB
 ```
 
 Single predictor models- Data Subset B
@@ -351,6 +370,8 @@ print(resultmat)
 
 
 Full model- Data Subset B
+Now let’s fit a full logistic model with all predictors.
+
 ```{r}
 set.seed(1111) #makes each code block reproducible
 fitControl <- trainControl(method="repeatedcv",number=5,repeats=5) 
@@ -415,6 +436,7 @@ resamps <- resamples(list(tree = fit1,
 bwplot(resamps)
 ```
 
+The column labeled “Accuracy” is the overall agreement rate averaged over cross-validation iterations. The agreement standard deviation is also calculated from the cross-validation results. The column “Kappa” is Cohen’s (unweighted) Kappa statistic averaged across the resampling results.
 ```{r randomforest-3, echo=TRUE}
 resamps_no_tree <- resamples(list(RF1 = fit2,
                           GBM = fit3,
@@ -422,7 +444,6 @@ resamps_no_tree <- resamples(list(RF1 = fit2,
                           PDA = fit5))
 bwplot(resamps_no_tree)
 ```
-
 
 This suggests that while they are all pretty close, it seems like **GBM** (`fit3`) may be the best
 
@@ -455,8 +476,33 @@ predicted <- predict(fit3, data_train_subsetB)
 confusion(data_train_subsetB$bioregion, predicted) #generates confusion matrix
 # generating table with all results, with TRUE/FALSE accuracy column to compute ACC
 train_data_results <- tibble("Actual" = data_train_subsetB$bioregion, "Predicted" = predicted)
-measureACC(train_data_results$Predicted, train_data_results$Actual)
+train_accuracy <- measureACC(train_data_results$Predicted, train_data_results$Actual)
 #use predicted and actual outcomes, make a table and compute accuracy.
+```
+```{r}
+library(knitr)
+#install.packages("kableExtra")
+library(kableExtra)
+labels <- c("Predicted","AK_BrtClm","Salish_WA","OlyCstWA_SF","SF_GovtPt","Chnl_Isl_S","GovtPt_Mexico")
+AK_2_BritColumb_col <- c("AK_BrtClm",257,0,0,0,0,0)
+SalishSea_WA_col <- c("Salish_WA",0,457,0,0,0,0)
+OlyCstWA_2_SanFran_col <- c("OlyCstWA_SF",0,0,2560,25,0,1)
+SanFran_2_GovtPt <- c("SF_GovtPt",0,0,337,3895,0,0)
+ChannelIsl_South_col <- c("Chnl_Isl_S",0,0,0,0,25,0)
+GovtPt_2_Mexico_col <- c("GovtPt_Mexico",0,0,0,6,0,1656)
+contingency_table <- data.frame(labels,AK_2_BritColumb_col,SalishSea_WA_col,OlyCstWA_2_SanFran_col,SanFran_2_GovtPt,ChannelIsl_South_col,GovtPt_2_Mexico_col)
+colnames(contingency_table) <- c("","Actual","","","","","")
+#Multipred_df$RMSE <- as.(Multipred_df$RMSE)
+contingency_table
+kable(contingency_table) %>%
+  kable_styling(full_width = F)
+
+#ggsave(filename = "../../results/Categorical_Outcome_Modeling_results/12.PredvsActual.png",plot = kable(contingency_table), width = 5, height = 4)
+```
+
+```{r}
+null_accuracy_test_subsetB <- measureACC("SanFran_2_GovtPt", data_test_subsetB$bioregion)
+null_accuracy_test_subsetB
 ```
 
 
@@ -467,9 +513,54 @@ predicted_final <- predict(fit3, data_test_subsetB)
 confusion(data_test_subsetB$bioregion, predicted_final) #generates confusion matrix
 # generating table with all results, with TRUE/FALSE accuracy column to compute ACC
 test_data_results <- tibble("Actual" = data_test_subsetB$bioregion, "Predicted" = predicted_final)
-measureACC(test_data_results$Predicted, test_data_results$Actual)
+test_accuracy <- measureACC(test_data_results$Predicted, test_data_results$Actual)
 #use predicted and actual outcomes, make a table and compute accuracy.
 ```
+
+```{r}
+library(knitr)
+#install.packages("kableExtra")
+library(kableExtra)
+labels <- c("Predicted","AK_BrtClm","Salish_WA","OlyCstWA_SF","SF_GovtPt","Chnl_Isl_S","GovtPt_Mexico")
+AK_2_BritColumb_col <- c("AK_BrtClm",109,0,0,0,0,0)
+SalishSea_WA_col <- c("Salish_WA",0,195,0,0,0,0)
+OlyCstWA_2_SanFran_col <- c("OlyCstWA_SF",0,0,1096,14,0,3)
+SanFran_2_GovtPt <- c("SF_GovtPt",0,0,145,1668,0,0)
+ChannelIsl_South_col <- c("Chnl_Isl_S",0,0,0,0,10,0)
+GovtPt_2_Mexico_col <- c("GovtPt_Mexico",0,0,0,0,0,706)
+
+
+contingency_table2 <- data.frame(labels,AK_2_BritColumb_col,SalishSea_WA_col,OlyCstWA_2_SanFran_col,SanFran_2_GovtPt,ChannelIsl_South_col,GovtPt_2_Mexico_col)
+colnames(contingency_table) <- c("","Actual","","","","","")
+contingency_table2
+kable(contingency_table) %>%
+  kable_styling(full_width = F)
+```
+
+
+```{r}
+null_accuracy_test_subsetB<- round(null_accuracy_test_subsetB,4)
+null_accuracy_train_subsetB<- round(null_accuracy_train_subsetB,4)
+train_accuracy<- round(train_accuracy,4)
+test_accuracy <- round(test_accuracy,4)
+
+Data_cat <- c("Null_train","GBMmodel_train","Null_test","GBMmodel_test")
+accuracy_cat <- c(null_accuracy_train_subsetB,train_accuracy,null_accuracy_test_subsetB,test_accuracy)
+Final_Results_cat <- data.frame(Data_cat,accuracy_cat)
+Final_Results_cat
+
+Final_Results_cat_ordered <- Final_Results_cat %>%
+  mutate(Data_cat = factor(Data_cat, levels = c("Null_train","GBMmodel_train","Null_test","GBMmodel_test"))) %>%
+  arrange(Data_cat) 
+
+Final_Results_cat_ordered_plot <- Final_Results_cat_ordered %>% ggplot(aes(x = Data_cat, y=accuracy_cat, label=accuracy_cat)) +geom_label(stat='identity',fill=RMSE_colors, size=9, face="bold") + ylab("Accuracy (%)") + ylim(0.3,1.0) + 
+  theme(title = element_text(size=12), axis.title.y = element_text(size=16),axis.title.x = element_blank(),axis.text.y = element_text(size=12), axis.text.x = element_text(size=12))
+
+Final_Results_cat_ordered_plot
+
+ggsave(filename = "../../results/Categorical_Outcome_Modeling_results/14.final_results_cat.png",plot = Final_Results_cat_ordered_plot, width = 5, height = 4)
+```
+
 
 Obviously accuracy went down, but only by ~1%, and its still very high. 
 

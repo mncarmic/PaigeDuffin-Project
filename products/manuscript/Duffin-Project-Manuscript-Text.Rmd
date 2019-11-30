@@ -12,9 +12,6 @@ bibliography: ../references_duffin.bib
 csl: ../apa.csl
 ---
 
-# Summary/Abstract
-_Write a summary of your project._
-
 # Introduction
 ## General Background Information
 ### Broad Scope: Characterizing Sea Star Wasting Disease
@@ -26,102 +23,128 @@ The consensus of reports which emerged in the years after the disease event indi
 
 ## Description of data and data source
 ### The Source
-The vast majority of sea star abundance surveys and wasting disease documentation cover the west coast of the United States. While it is almost certainly true that SSWD is most prevalent in this region, there is a strong bias towards the discovery of diseased organisms owing to the emphasis of long-term survey networks in the area, such as the extensive [Multi-Agency Rocky Intertidal Network](https://marine.ucsc.edu/index.html) (MARINe for short). 
+The vast majority of sea star abundance surveys and wasting disease documentation cover the west coast of the United States. While it is almost certainly true that SSWD is most prevalent in this region, there is a strong bias towards the discovery of diseased organisms owing to the emphasis of long-term survey networks in the area, such as the extensive [Multi-Agency Rocky Intertidal Network](https://marine.ucsc.edu/index.html) (MARINe for short). MARINe is a consortium of organizations (lead group: University of California Santa Cruz) which began with the goal of developing a set of methods that allows scientists to collect data that is statistically sound with approaches that are simple, cost-effective, reproducible, and sustainable. Among their initiatives and projects is the targeted long-term monitoring approach which focuses on monitoring key species within fixed plots semi-annually, with the broad aim of collecting data which allows for the detection of relatively small changes in the abundance of species which play an important role in their community. Specifically, the data set utilized in this investigation focuses on the long-term abundance of three target species: ochre sea stars (_Pisaster ochraceus_), the mottled sea stars (_Evasterias troschelii_), and the black chitons (_Katharina tunicata_). 
 
-The purpose of this investigation is to make use of this data monitoring system to investigate spatial and temoporal changes in sea star abundance along the west coast of the United States, with particular emphasis on the years before, during, and after the SSWD outbreak. 
+The data used in this analysis is publicly available by request through the UC Santa Cruz MARINe portal (https://marine.ucsc.edu/explore-the-data/contact/index.html).
+
+The purpose of this investigation is to make use of this extensive data monitoring system to investigate spatial and temoporal changes in target species assemblages along the west coast of the United States, with particular emphasis on _P. ochraceus_ populations in the years before, during, and after the SSWD outbreak of 2013-2014. 
 
 ### The Data
-Below I explore the raw data I downloaded from a link I recieved after submitting a request for the data on the MARINe webpage.
+After the data request was approved, the raw data was sent by email and downloaded as a `.csv` file (`seastarkat_size_count_totals.csv`). Following the cleaning step (see methods), the finalized data was comprised of 12165 observations across 23 variables. This included the following (field definitions obtained from accompanying MARINe file):
 
-Notably, it contains the following information (some parameters removed from this overview): 
+* 14 categorical variables (factors)
+  * **georegion:** geographic region in which site is located
+  * **bioregion:** biogeographic region in which site is located
+  * **island:** the name of the island where the referenced site is located. Sites not on islands are designated as mainland.
+  * **state:** state where the referenced site is located.
+  * **mpa_region:** describes whether the referenced site is located within a Marine Protected Area (MPA).
+  * **marine_site_name:** the name of the site where the survey was conducted.
+  * **site_code:** abbreviated name of the site where the survey was conducted.
+  * **season_name:** name of season when the survey was conducted.
+  * **marine_season_code:** four-character code to identify the Sampling season. The first two characters indicate the season and the last 2 characters indicate the year.
+  * **species_code:** unique alphabetic lookup code for each species or lumped species group.
+  * **group_code:** the unique code for each monitoring group
+  * **group_code_UCSC_other:** modified groupings of levels in group_code, see `processing_script` for details.
+  * **method_code:** the method used for sampling the plot.
+  * **method_code_IP_other:** modified groupings of levels in method_code, see `processing_script` for details.
 
-* `groupcode`: The unique code for each monitoring group
-* `marine_site_name`: The name of the site where the survey was conducted.
-* `latitude` and `longitude`: (self explanatory)
-* `marine_season_code`: A four-character code to identify the Sampling season. The first two characters indicate the season and the last 2 characters indicate the year.
-* `method_code`: The method used for sampling the plot. 
-* `size_bin`: The size of the species being counted, binned to the nearest 5 or 10 millimeter.
-* `target_assemblage`: The specific organism that this transect was created to monitor.
-* `total`: Total number of individuals counted in a given size_bin
-* `mpa_designation`: Describes whether the referenced site is located within a Marine Protected Area (MPA) or is a reference site. If this field is blank, the referenced site is not located within an MPA, or is not a reference site for an existing MPA site.
-* `georegion`/ `bioregion`: geographic/biogeographic region in which site is located
-* `state_province`: The State or Province and Country where the referenced site is located.
-* `island`: The name of the island where the referenced site is located. Sites not on islands are designated as mainland.
+* 9 numeric variables (integers/numeric)
+  * **latitude:** the number of degrees North of the equator, expressed in decimal degrees to 5 decimal places (NAD83).
+  * **longitude:** the number of degrees West of the Prime Meridian, expressed in decimal degrees to 5 decimal places (NAD83).
+  * **marine_sort_order:** used to order the sites geographically along the coast. Actual values are arbitrary, and should not be used for site identification.
+  * **marine_common_year:** year in which survey was done. Note that this can be different from the year in the survey date - for example, January of 2016 could still be considered FA15, so the marine_common_year would be 2015.
+  * **marine_common_season:** consecutive sampling number. A code created to allow sequencing of the seasons, used for sorting data in chronological order.
+  * **season_sequence:** season sequence within each year. Each number indicates a different season.
+  * **total:** total number of individuals counted in a given size_bin.
+  * **size_bin:** size of the species being counted, binned to the nearest 5 or 10 millimeter.
+  * **size_sort_order:** numerical code used for sorting size_bin.
 
-## Questions/Hypotheses to be addressed
-How does species abundance change across time and space? 
+## Questions to be addressed
+### Exploratory Questions
+**1. How does species abundance change across time and space?**
+**2. Are there discernable changes in spp. abundance before & after the focal SSWD event?**
+**3. How did populations of the focal sp., _P. ochraceus_, respond & recover from the SSWD event?**
 
-Are there discernable changes in spp. abundance before & after the focal SSWD event?
-
-How did populations of the focal sp., P. ochraceus, respond & recover from the SSWD event?
-
-Which variables predict species abundance?
-
-Can we predict bioregion using the data and tree-fitting model?
-
-**1. Are sea star populations changing over time?** 
-I anticipate that there will be a decline in sea star populations over time, but that the change will not occur uniformly across geographical regions and species. Species that are reported to have been affected by SSWD will experience the biggest declines. 
-
-**2. Are there definable geographical regions throught space based on predictor variables?**
-I expect to be able to define rough species ranges. 
-
-**3. Is there evidence of sampling bias?**
-Is there a relationship between important survey parameters (mainly, abundance data) and sampling method (ex. group conducting the survey, plot sampling method, the target assemblage). At the very least, I expect there will be bias based on the targeted organism of the survey; if a given survey aims to characterize the presence of one species of sea stars, it is likely that they will seek out that species and record higher counts. 
+### Statistical/Machine Learning Questions
+**1. Which variables are good predictors of species abundance?**
+**2. Are there definable geographical regions based on the available predictor variables?**
 
 # Methods and Results
+Please note that due to the abundance of figures included in this report (over 30), the figures are intended to be generated as a second document (`Duffin-Project-Manuscript-Figures.Rmd`) so as not to disrupt the body of the text. Figures described throughout this text should be referenced while reading this document.
+
 ## Data import and cleaning
-_Write code that reads in the file and cleans it so it's ready for analysis. Since this will be fairly long code for most datasets, it might be a good idea to have it in one or several R scripts. If that is the case, explain here briefly what each file does. The files themselves should be commented well so everyone can follow along._
-
-The original data was downloaded from a link I recieved after submitting a request for the data on the Multi-Agency Rocky Intertidal Network, or MARINe, [webpage](https://marine.ucsc.edu/index.html). The raw data is found here: `./data/raw_data/seastarkat_size_count_totals_download.csv`. 
-
-This data was cleaned extensively prior to use in this analysis, and the code which performs this cleaning is found here: `./code/processing_code/processing_script`. Briefly, this involved examining each variable by plotting factors as bar plots and integers/numerics as histograms. This allowed me to observe the structure of each variable and make necessary changes to clean the data. 
+The data used in this investigation was downloaded as a `.csv` file (`seastarkat_size_count_totals.csv`), imported into RStudio, and cleaned extensively prior to use in this analysis. The code which performed this cleaning can be found here: `./code/processing_code/processing_script`. Generally, this involved examining each variable using the functions `skim()` and `glimpse()`, then plotting factors as bar plots and integers/numerics as histograms. This allowed me to observe the structure of each variable and make necessary changes to clean the data.
 
 ## Exploratory analyses
-The code which performed my exploratory analyses can be found here: `./code/analysis_code/Exploratory_Analysis.Rmd`
+The code which performed my exploratory analyses can be found here: `./code/analysis_code/Exploratory_Analysis.Rmd`. 
 
 ### Mapping Survey Sites
-First, I created geographical maps to visualize the sample sites. Sites were sampled in four states:
-
+Geographical maps were generated to visualize the sample sites, which were distributed across four states along the west coast of the United States: Alaska (fig 1), Washington (fig 2), Oregon (fig 3), and California (fig 4). Overall, Alaska was surveyed the least-extensively (only one sample site; fig 1), and California -by far- the most, with sample sites lining the Pacific coast almost continuously (fig 4). 
 
 ### How does species abundance change across time and space? 
+#### _Broad changes in species abundance_
+First, species abundance was investigated collectively accross all three species and over all years surveyed (2000-2018). Throughout this analysis, species abundance was plotted as log-transformed values to reduce the visual burden of outliers. Figure 5 displays trends over time as a function of state, clearly revealing that Alaska and Washington were not sampled before 2009. At this scale, it is hard to resolve any meaningful trends in species abundance across time and space (fig 5).
 
+#### _Abundance trends by species_
+As this investigation is primarily interested in one of the three species surveyed, P. ochraceus, it was logical to separate the data by species surveyed. Figures 6, 7, and 8 plot the log-transformed abundances of P. ochraceus, K. tunicata, and E. troschelii across all years in which the data existed. For P.ochraceus, this spanned from 2000 to 2018 (fig 6); for the other two species, sampling began in 2009 (figs 7-8). It became immediately clear that E. troschelii was relatively sparse as compared to P. ochraceus and K. tunicata (figs 6-8). P. ochraceus abundance appears to be relatively stable from 2000 to 2013, after which the median abundance notably drops (fig 6); this is exactly what we would expect to see given our prior knowledge, and is worth investigating further. 
 
 ### Are there discernable changes in spp. abundance before & after the focal SSWD event? 
+In an attempt to better visualize changes in  spp. abundance before & after the focal SSWD event, the data was filtered to only include sampling events between 2013 and 2016. This subset of data was then plotted on a map to visualize the general ranges of each of the three target species (fig 9). While P. ochraceus dominates the visualization, we can see that E. troschelii is only present in the northern region of the continental US (Washington) and at the site in Alaska (fig 9). This narrower range of habitat likely contributes to the trends discussed in the previous section. In contrast, P. ochraceus appears to occupy the entire range of sites surveyed (fig 9).
 
+Next, trends in abundances of each species were visualized between 2013 and 2016 using boxplots (figs 10-12). Again, the limited number of entries for E. troschelii prohibit any meaningful detection of changes in abundance (fig 12), but the narrowed timeframe allows us to see that median abundance values of black chiton populations are relatively uniform across the four years plotted (fig 11). Perhaps most interestingly, there is a pronounced dip in P. ochraceus abundance from 2013 to 2014, and even into 2015 (fig 10). Somewhat counterintuitively, however, outlier sites with high abundance seem to increase over time (fig 10). 
+
+It is possible that averaging trends across a broad range of sampling locations might dilute real changes that are occuring, so in an attempt to tease apart the trends observed in figures 10 through 12, I subdivided each plot by state (fig 13a-c). Again, E. troschelii fails to produce any trends worth investigating (fig 13c), so it will not be included in downstream analyses. When separated by state, K. tunicata abundances appear to flucuate more than previously detectable, except in California (fig 13b). However, I speculate this may be due to relatively few observations remaining to plot for Alaska, Washington, and Oregon. Further, California again stands out among P. ochraceus plots in that it reflects the same general trend observed when averaged across states (fig 13a). P. ochraceus populations in Oregon appear relatively consistant over the time frame, while Alaska populations become more variable in 2014 as compared to the previous year, then decrease significantly by 2016 (fig 13a)
+
+Next, time points were subdivided from year to sampling season in an attempt to resolve trends at a finer scale, then plotted as before (with E. troschelii excluded, fig 14). It is worth noting that K. tunicata is not an echinoderm, and therefore was wholly unaffected by SSWD, so it serves as a usefull baseline to compare P. ochraceus abundance trends during the SSWD event to. Indeed, P. ochraceus numbers drop from fall of 2013 to the spring of 2014, while K. tunicata levels remain consistant. These graphs display evidence that SSWD substantially altered P. ochraceus abundance following the start of the event in late 2013, as both the median of the distribution drops, and the majority of points (box of the boxplot) approach zero (fig 14) 
 
 ### How did populations of the focal sp., P. ochraceus, respond & recover from the SSWD event?
+From here on, I focused exclusively on my focal species of interest, P. ochraceus, and moved towards a slightly different approach to visualize changes before & after the focal SSWD event by using density plots with quartile divisions. Further, I narrowed my scope of investigation by filtering only sites which had high abundance counts prior to the SSWD event (50+ individuals counted during 2013), as healthy, robust P. ochraceus populations are arguably of greatest ecological interest, as well as the general principle in disease ecology that infectious diseases are likely to spread more quickly in dense populations. 
+
+Figure 15 displays the abundance distributions over time for the six sites which met the above criteria, and the results are apparent: from 2013 to 2016, each site's abundance distribution clearly shifted towards the left, meaning more observations had low (or even zero) counts. Sites "5030" and "6220" display similar and extremely intriguing trends: both sites have relatively normal abundance distributions in 2013 that center around 3 (log(Abundance)) (fig 15). In 2014, this distribution is disrupted and shifts left. However, in the last two years displayed, both sites appear to develop a bimodal distribution, suggesting potential recovery (fig 15).
+
+Population recovery implies that young recruits are beginning to recolonize an area previously disrupted, so I was interested in seeing if there were any detectable shifts in size distributions of P. ochraceus individuals that corresponded to explainable trends in abundance. In order to give historical context to size distributions, the range of years was expanded out again from 2010 to 2018. Figure 17 gives a side-by-side comparison of abundance and size class distributions for P. ochraceus during this time frame across all sites surveyed, and figure 18 displays the same information, but only for sites characterized by a high abundance in 2013 (50+ individuals). Across all sites, the growing abundance distribution peak near/at zero reflects trends seen in earlier plots, and it is interesting to note the more subtle, but present, shift of the distribution (most easily viewed by focusing on relative quartile position) to the left from 2013 to 2014, then the gradual shift back towards the right from 2015 onward (fig 16). This is even more apparent when viewing the mobility of the third and fourth quartiles (two darkest shades of blue) in filtered site plot (filtered to only include high count sites; fig 17).
+
+Finally, I wanted to visualize this information in another way that highlighted extreme values, to demonstrate the idea that some sites are recovering, as evident by observations that have high abundance measurements and small size classes. Figure 18 does exactly that, by plotting abundance (raw, fig 18a, and log-transformed, fig 18b) over time with points colored based on their size class. It is strikingly apparent that while there are, indeed, more observations with high abundance values after around 2014, these observations feature much smaller sea stars (as shown by the purple-shading of these points, corresponding to a lower size class, fig 18a-b). Raw abundances were included (fig 18a) was included to emphasize outlier sites, and the regression line (model = LOESS, locally weighted smoothing) of the log-transformed abundances (fig 18b) helps to visually describe the average statistical trend.
+
+
+#### Please note: I ran out of time writing all sections after this point. I will be adding to it later, but I have put so much time and effort into this analysis and have to stop for now. I also looked at projects for other students in the course and feel as though I have already put in way too much time and effort into this project relative to the majority of my peers (no offense intended, I completely misjudged how long this would take me but want to see it through).. but right now, I'm incredibly sleep deprived and need to draw the line here, but I will finish this soon. If you are a peer-reviewer, please check back Sunday (Dec 2) for the completed version and I am sorry for any inconvenience.
 
 ## Full analysis 
-_Use one or several suitable statistical/machine learning methods to analyze your data and to produce meaningful figures, tables, etc. This might again be code that is best placed in one or several separate R scripts that need to be well documented. You can then load the results produced by this code_
-
 ### Which variables predict species abundance?
 The first used abundance counts (or the variable `total`) as the outcome predictor on a reduced dataset that only retained the species of interest, _Pisaster ochraceus_. This code is found here: `./code/analysis_code/Continuous_Outcome_Modeling.Rmd`.
 
 
 ###  Can we predict bioregion using variable selection and tree-fitting models?
-_For this analysis, our main outcome of interest is if an outbreak was caused by the G2.4 strain of norovirus or not, and how other factors might be correlated with that strain_
-
-_cross validation. We could do data splitting again as we did in the previous exercise, to have a final test set. But since you saw how it works in the previous exercise, we skip it here. We use the full data to fit to our models. We’ll still use cross-validation to get a more honest estimate of model performance. For a real data analysis, the choice to keep some for a final test or not is based on your goals. If your focus is predictive performance, you should consider this split. If your focus is inference or exploratory analysis, you might want to skip this._
-
 The second focused on the categorical variable `bioregion` and used a machine learning tree fitting method. This code is found here: `./code/analysis_code/Continuous_Outcome_Modeling.Rmd`.
 
-
 ## Discussion
-
 ### Summary and Interpretation
 _Summarize what you did, what you found and what it means._
+### Exploratory Questions  
+
+**1. How does species abundance change across time and space?**
+E. troschelii did not have sufficient data to fully assess abundance changes over time.
+K. tunicata was relatively stable over time.
+P. ochraceus varied over time in a manner that was consistent with SSWD reports.  
+
+**2. Are there discernable changes in spp. abundance before & after the focal SSWD event?**
+Yes, there is a period of reduced abundance around 2014, but there is evidence that some populations may be recovering.
+
+**3. How did populations of the focal sp., _P. ochraceus_, respond & recover from the SSWD event?**
+Perhaps the most interesting result of this analysis was the observation that, not only did we see a decrease in abundance at the expected time point, but we also saw compelling evidence that some populations are recruiting offspring and recovering. 
+
+### Statistical/Machine Learning Questions
+
+**1. Which variables are good predictors of species abundance?**
+
+**2. Are there definable geographical regions based on the available predictor variables?**
 
 ### Strengths and Limitations
 _Discuss what you perceive as strengths and limitations of your analysis._
+Many of the predictors were highly correlated with the outcome of interest, so the success of the modeling activities is largely uninteresting because highly-correlated variables should be good predictors of the outcome they are correlated with. 
 
 ### Conclusions
 _What are the main take-home messages?_
-
-
-_Include citations in your Rmd file using bibtex, the list of references will automatically be placed at the end_
-
-
-reference [@Leek2015a] here
-reference [@bull_theory_2014] here
+P. ochraceus populations suffered from the events of the 2013-2014 sea star wasting disease event on the west coast of the US, but there is evidence that they are capable of recovering. 
 
 ### References

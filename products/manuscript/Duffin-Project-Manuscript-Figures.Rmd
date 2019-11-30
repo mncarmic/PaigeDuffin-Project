@@ -6,7 +6,7 @@ institute: "University of Georgia"
 site: bookdown::bookdown_site
 documentclass: article
 output: word_document
-bibliography: ../references.bib
+bibliography: ../references_duffin.bib
 csl: ../apa.csl
 ---
 
@@ -125,15 +125,27 @@ knitr::include_graphics("../../results/Continuous_Outcome_Modeling_results/6.fin
 knitr::include_graphics("../../results/Categorical_Outcome_Modeling_results/1.bioregion_histogram.png")
 ```
 
-```{r Fig26, fig.cap="Fig 26. Plotting (A) spatial (B) temporal and (C) species-related numeric predictors as a function of the category of interest, bioregion (red = Alaska, USA to British Columbia, Canada; yellow = Salish Sea, WA, USA; green = Olympic Coast, WA, USA to San Francisco, CA, USA; blue = San Francisco to Government Point, CA, USA; purple = Channel Islands South, CA, USA; pink = Government Point, CA, USA to Mexico). The data is displayed as boxplots with all points overlaid. Note: The purpose of this figure is to provide a quick visualization and is not intended to be detailed enough to resolve specific trends.", echo=FALSE}
+```{r Fig26a, echo=FALSE}
 knitr::include_graphics("../../results/Categorical_Outcome_Modeling_results/2.spatial_num_pred.png")
+```
+
+```{r Fig26b, echo=FALSE}
 knitr::include_graphics("../../results/Categorical_Outcome_Modeling_results/3.temporal_num_pred.png")
+```
+
+```{r Fig26c, fig.cap="Fig 26. Plotting (A) spatial (B) temporal and (C) species-related numeric predictors as a function of the category of interest, bioregion (red = Alaska, USA to British Columbia, Canada; yellow = Salish Sea, WA, USA; green = Olympic Coast, WA, USA to San Francisco, CA, USA; blue = San Francisco to Government Point, CA, USA; purple = Channel Islands South, CA, USA; pink = Government Point, CA, USA to Mexico). The data is displayed as boxplots with all points overlaid. Note: The purpose of this figure is to provide a quick visualization and is not intended to be detailed enough to resolve specific trends.", echo=FALSE}
 knitr::include_graphics("../../results/Categorical_Outcome_Modeling_results/4.spp.rel_num_pred.png")
 ```
 
-```{r Fig27, fig.cap="Fig 27. Plotting (A) logistics/sampling info (B) spatial and (C) ecological categorical predictors as a function of the category of interest, bioregion (red = Alaska, USA to British Columbia, Canada; yellow = Salish Sea, WA, USA; green = Olympic Coast, WA, USA to San Francisco, CA, USA; blue = San Francisco to Government Point, CA, USA; purple = Channel Islands South, CA, USA; pink = Government Point, CA, USA to Mexico). Note: The purpose of this figure is to provide a quick visualization and is not intended to be detailed enough to resolve specific trends.", echo=FALSE}
+```{r Fig27a, echo=FALSE}
 knitr::include_graphics("../../results/Categorical_Outcome_Modeling_results/5.sampleinfo_cat_pred.png")
+```
+
+```{r Fig27b, echo=FALSE}
 knitr::include_graphics("../../results/Categorical_Outcome_Modeling_results/6.spatial_cat_pred.png")
+```
+
+```{r Fig27c, fig.cap="Fig 27. Plotting (A) logistics/sampling info (B) spatial and (C) ecological categorical predictors as a function of the category of interest, bioregion (red = Alaska, USA to British Columbia, Canada; yellow = Salish Sea, WA, USA; green = Olympic Coast, WA, USA to San Francisco, CA, USA; blue = San Francisco to Government Point, CA, USA; purple = Channel Islands South, CA, USA; pink = Government Point, CA, USA to Mexico). Note: The purpose of this figure is to provide a quick visualization and is not intended to be detailed enough to resolve specific trends.", echo=FALSE}
 knitr::include_graphics("../../results/Categorical_Outcome_Modeling_results/7.eco_cat_pred.png")
 ```
 

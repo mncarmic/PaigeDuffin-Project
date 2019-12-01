@@ -250,6 +250,7 @@ print(resultmat)
 ```
 
 ```{r}
+null_accuracy_treefit <- 0.426
 library(knitr)
 library(kableExtra)
 Variable <- c("size_bin","total","marine_common_year","species_code","island","method_code_IP_other","method_code","group_code_UCSC_other","state","marine_season_code","group_code","season_name","season_sequence","marine_common_season","site_code","mpa_region","georegion","latitude", "longitude","marine_sort_order")
@@ -260,12 +261,13 @@ Singlepred_df_ordered <- Singlepred_df %>%
   mutate(Variable = factor(Variable, levels = c("size_bin","total","marine_common_year","species_code","island","method_code_IP_other","method_code","group_code_UCSC_other","state","marine_season_code","group_code","season_name","season_sequence","marine_common_season","site_code","mpa_region","georegion","latitude", "longitude","marine_sort_order"))) %>%
   arrange(Variable)
 
-Single_Predictor_Accuracy <- Singlepred_df_ordered %>% 
-  ggplot(aes(x = Variable, y=Accuracy, label =Accuracy)) + 
-  geom_hline(yintercept=null_accuracy_treefit,color='red', size=2,linetype="dashed") +
-  geom_vline(xintercept=11.5,color="deepskyblue",size=1.5,linetype="dashed") +
-  geom_label(stat='identity',color="black", size=4,fill="lightgrey") + 
-  theme(title = element_text(size=12), axis.title.y = element_text(size=14),axis.title.x = element_blank(),axis.text.y = element_text(size=12),axis.text.x = element_text(size=8,angle=40,hjust=1))
+# vertical line conditioning
+lvls <- levels(Singlepred_df_ordered$Variable)
+vline.level <- 'site_code' # you want to draw line here, right before 18
+
+#geom_vline(aes(xintercept = myLoc))
+# plotting
+Single_Predictor_Accuracy <- Singlepred_df_ordered %>% ggplot(aes(x = Variable, y=Accuracy, label =Accuracy)) + geom_hline(yintercept=null_accuracy_treefit,color='red', size=2,linetype="dashed") + ylim(0.35,1) + geom_text(stat='identity',color="black", size=5,fill="lightgrey",angle=90) + theme(title = element_text(size=12), axis.title.y = element_text(size=14),axis.title.x = element_blank(),axis.text.y = element_text(size=12), axis.text.x = element_text(size=8,angle=40,hjust=1))
 
 Single_Predictor_Accuracy
 ggsave(filename = "../../results/Categorical_Outcome_Modeling_results/8.single_predictor_accuracy.png",plot = Single_Predictor_Accuracy, width = 6, height = 4)

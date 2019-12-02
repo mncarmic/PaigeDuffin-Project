@@ -5,7 +5,7 @@ date: "11/7/2019"
 output: html_document
 ---
 
-# Exploratory Analysis {.tabset}
+# Continuous Variable Analysis {.tabset}
 
 ## Preparing Workspace
 
@@ -99,6 +99,8 @@ P.ochra_numer_data <- P.ochra_numer_data %>% mutate(order_site = marine_sort_ord
 visdat::vis_dat(P.ochra_numer_data)
 ```
 
+## Plotting predictors
+### Plotting numerical predictors
 ```{r}
 myPalette <- colorRampPalette(viridis_pal(begin = 0, end = 1,option = "plasma")(8),)
 plasma_continuous <- scale_colour_gradientn(colours = myPalette(91328))
@@ -155,7 +157,7 @@ P.ochra_numer_data_corr <- corrplot::corrplot(P.ochra_numer_data_corr)
 
 Okay, so a few of these are highly correlated, and for good reason. The only one I can really think to justify getting rid of one of the two correlated variables for is the `size_sort`/`size_bin`. `size_bin` is as informative as `size_sort`, and more, so I'll get rid of `size_sort`
 
-## Plotting categorical predictors
+### Plotting categorical predictors
 ```{r}
 P.ochra_categ_data <- P.ochra_clean_data %>% select_if(is.factor)
 P.ochra_categ_data$total <- P.ochra_clean_data$total
@@ -408,13 +410,11 @@ RMSE = sqrt(SSR/length(outcome))
 print(RMSE)
 ```
 
-
 ```{r}
 Data <- c("Null_train","knn_train","Null_test","knn_test")
 RMSE <- c(17.132,11.095,18.029,10.131)
 Final_Results <- data.frame(Data,RMSE)
 Final_Results
-
 
 Final_Results_ordered <- Final_Results %>%
   mutate(Data = factor(Data, levels = c("Null_train","knn_train","Null_test","knn_test"))) %>%

@@ -102,12 +102,6 @@ visdat::vis_dat(P.ochra_numer_data)
 ```{r}
 myPalette <- colorRampPalette(viridis_pal(begin = 0, end = 1,option = "plasma")(8),)
 plasma_continuous <- scale_colour_gradientn(colours = myPalette(91328))
-
-
-p1 <- P.ochra_numer_data %>% select_if(is.numeric) %>% gather(-total, key = "var", value = "value") %>% 
-            ggplot() + geom_jitter(aes(x = value, y=total), alpha = 0.4, width = 0.4) +
-            facet_wrap(~ var, scales = "free",nrow=4) + theme_bw() 
-print(p1)
 ```
 
 ```{r}
@@ -116,7 +110,42 @@ p1log <- P.ochra_numer_data %>% select_if(is.numeric) %>% gather(-total, key = "
             facet_wrap(~ var, scales = "free",nrow=4) + theme_bw()
 print(p1log)
 
-ggsave(filename = "../../results/Continuous_Outcome_Modeling_results/1.count_vs_numerical.png",plot = p1log, width = 5, height = 4)
+#ggsave(filename = "../../results/Continuous_Outcome_Modeling_results/1.count_vs_numerical.png",plot = p1log, width = 5, height = 4)
+```
+
+```{r}
+colfunc_abundance <-colorRampPalette(c("plum","darkmagenta","purple4"))
+title <- "log(Abundance)"
+log_abundance_colours <- scale_colour_gradientn(title,colours = colfunc_abundance(50))
+
+latitude_vs_abundance <- P.ochra_numer_data %>% ggplot(aes(y = log(total), x=latitude, col=log(total))) + geom_jitter(size=8,alpha=0.1,width=0.1) + ylab("log(Abundance)") + xlab("Latitude") + log_abundance_colours + theme(legend.position = "none",axis.title.y=element_text(size=12),axis.text.y=element_text(size=12)) 
+#latitude_vs_abundance
+
+longitude_vs_abundance <- P.ochra_numer_data %>% ggplot(aes(y = log(total), x=longitude, col=log(total))) + geom_jitter(size=8,alpha=0.1,width=0.1) + ylab("log(Abundance)") + xlab("Longitude") + log_abundance_colours + theme(legend.position = "none",axis.text.y=element_text(size=12),axis.title.y=element_blank()) 
+#longitude_vs_abundance
+
+site_vs_abundance <- P.ochra_numer_data %>% ggplot(aes(y = log(total), x=order_site, col=log(total))) + geom_jitter(size=8,alpha=0.1,width=0.3) + ylab("log(Abundance)") + xlab("Sites (Ordered N to S)") + log_abundance_colours + theme(legend.position = "none",axis.title.y=element_text(size=12),axis.text.y=element_text(size=12)) 
+#site_vs_abundance
+
+seasonyear_vs_abundance <- P.ochra_numer_data %>% ggplot(aes(y = log(total), x=season_year, col=log(total))) + geom_jitter(size=8,alpha=0.25,width=0.1) + ylab("log(Abundance)") + xlab("Season & Year") + log_abundance_colours + theme(legend.position = "none",axis.text.y=element_text(size=12),axis.title.y=element_blank()) 
+#seasonyear_vs_abundance
+
+sizebin_vs_abundance <- P.ochra_numer_data %>% ggplot(aes(y = log(total), x=size_bin, col=log(total))) + geom_jitter(size=8,alpha=0.25,width=0.1) + ylab("log(Abundance)") + xlab("Size Class") + log_abundance_colours + theme(legend.position = "none",axis.text.y=element_text(size=12),axis.title.y=element_blank()) 
+#sizebin_vs_abundance
+
+year_vs_abundance <- P.ochra_numer_data %>% ggplot(aes(y = log(total), x=year, col=log(total))) + geom_jitter(size=8,alpha=0.25,width=0.1) + ylab("log(Abundance)") + xlab("Year") + log_abundance_colours + theme(legend.position = "none",axis.title.y=element_text(size=12),axis.text.y=element_text(size=12)) 
+#year_vs_abundance
+```
+
+```{r}
+grid.arrange(latitude_vs_abundance,longitude_vs_abundance,nrow=1,top="(A) Spatial Numeric Predictors")
+ggsave(filename = "../../results/Continuous_Outcome_Modeling_results/1A.Spatial_Numeric.png",plot =grid.arrange(latitude_vs_abundance,longitude_vs_abundance,nrow=1,top="(A) Spatial Numeric Predictors") , width = 5, height = 4)
+
+grid.arrange(year_vs_abundance,seasonyear_vs_abundance,nrow=1,top="(B) Temporal Numeric Predictors")
+ggsave(filename = "../../results/Continuous_Outcome_Modeling_results/1B.Temporal_Numeric.png",plot=grid.arrange(year_vs_abundance,seasonyear_vs_abundance,nrow=1,top="(B) Temporal Numeric Predictors"), width = 5, height = 4)
+
+grid.arrange(site_vs_abundance,sizebin_vs_abundance,nrow=1,top="(C) Misc. Numeric Predictors")
+ggsave(filename = "../../results/Continuous_Outcome_Modeling_results/1C.Misc_Numeric.png",plot =grid.arrange(site_vs_abundance,sizebin_vs_abundance,nrow=1,top="(C) Misc. Numeric Predictors"), width = 5, height = 4)
 ```
 
 ```{r}
@@ -124,19 +153,9 @@ P.ochra_numer_data_corr <- P.ochra_numer_data %>% select_if(is.numeric) %>% cor(
 P.ochra_numer_data_corr <- corrplot::corrplot(P.ochra_numer_data_corr)
 ```
 
-Okay, so a few of these are highly correlated, and for good reason. The only one I can really think to justify getting rid of one of the two correlated variables for is the `size_sort`/`size_bin`. `size_sort` is as informative as `size_bin`, and more, so I'll get rid of `size_bin`
-```{r}
-P.ochra_numer_data <- P.ochra_numer_data %>% dplyr::select(-size_bin)
-```
+Okay, so a few of these are highly correlated, and for good reason. The only one I can really think to justify getting rid of one of the two correlated variables for is the `size_sort`/`size_bin`. `size_bin` is as informative as `size_sort`, and more, so I'll get rid of `size_sort`
 
-```{r}
-P.ochra_categ_data <- P.ochra_clean_data %>% select_if(is.factor)
-P.ochra_categ_data$total <- P.ochra_clean_data$total
-P.ochra_categ_data <- P.ochra_categ_data %>% dplyr::select(-species_code)
-p2 <- P.ochra_categ_data %>% gather(-total, -marine_season_code, key = "var", value = "value") %>% ggplot() + geom_violin(aes(x = value, y=total)) + geom_point(aes(x = value, y=total)) + facet_wrap(~ var, scales = "free") + theme_bw()
-print(p2)
-```
-
+## Plotting categorical predictors
 ```{r}
 P.ochra_categ_data <- P.ochra_clean_data %>% select_if(is.factor)
 P.ochra_categ_data$total <- P.ochra_clean_data$total
@@ -145,8 +164,54 @@ p2log <- P.ochra_categ_data %>% gather(-total, -marine_season_code, -marine_site
   scale_color_manual(values=pisaster_size_colors)
 print(p2log)
 
-ggsave(filename = "../../results/Continuous_Outcome_Modeling_results/2.count_vs_categorical.png",plot = p2log, width = 5, height = 4)
+#ggsave(filename = "../../results/Continuous_Outcome_Modeling_results/2.count_vs_categorical.png",plot = p2log, width = 5, height = 4)
 ```
+
+```{r}
+#edit x= ___, xlab("_____"), axis.text.x size
+bioregion_vs_abundance <- P.ochra_categ_data %>% ggplot(aes(y = log(total), x=bioregion, col=log(total))) + geom_jitter(size=4,alpha=0.25,width=0.4,height=0.25) + xlab("Bioregion") + ylab("log(Abundance)") + theme(axis.text.x = element_text(size=8,angle=15,hjust=0.8),axis.title.x=element_text(size=12),legend.position = "none",axis.title.y=element_text(size=12),axis.text.y=element_text(size=12)) + log_abundance_colours
+#bioregion_vs_abundance
+
+georegion_vs_abundance <- P.ochra_categ_data %>% ggplot(aes(y = log(total), x=georegion, col=log(total))) + geom_jitter(size=4,alpha=0.25,width=0.4,height=0.25) + xlab("Georegion") + ylab("log(Abundance)") + theme(axis.text.x = element_text(size=8,angle=15,hjust=0.8),axis.title.x=element_text(size=12),legend.position = "none",axis.title.y=element_text(size=12),axis.text.y=element_text(size=12)) + log_abundance_colours
+#georegion_vs_abundance
+
+groupcode_vs_abundance <- P.ochra_categ_data %>% ggplot(aes(y = log(total), x=group_code, col=log(total))) + geom_jitter(size=4,alpha=0.25,width=0.4,height=0.25) + xlab("Surveying Group") + ylab("log(Abundance)") + theme(axis.text.x = element_text(size=9,angle=15,hjust=0.8),axis.title.x=element_text(size=12),legend.position = "none",axis.title.y=element_text(size=12),axis.text.y=element_text(size=12)) + log_abundance_colours
+#groupcode_vs_abundance
+
+island_vs_abundance <- P.ochra_categ_data %>% ggplot(aes(y = log(total), x=island, col=log(total))) + geom_jitter(size=4,alpha=0.25,width=0.4,height=0.25) + xlab("Island Location?") + ylab("log(Abundance)") + theme(axis.text.x = element_text(size=10),axis.title.x=element_text(size=12),legend.position = "none",axis.title.y=element_text(size=10),axis.text.y=element_text(size=12)) + log_abundance_colours
+#island_vs_abundance
+
+method_vs_abundance <- P.ochra_categ_data %>% ggplot(aes(y = log(total), x=method_code, col=log(total))) + geom_jitter(size=4,alpha=0.25,width=0.4,height=0.35) + xlab("Sampling Method") + ylab("log(Abundance)") + theme(axis.text.x = element_text(size=10),axis.title.x=element_text(size=12),legend.position = "none",axis.title.y=element_text(size=12),axis.text.y=element_text(size=12)) + log_abundance_colours
+#method_vs_abundance
+
+mpa_vs_abundance <- P.ochra_categ_data %>% ggplot(aes(y = log(total), x=mpa_region, col=log(total))) + geom_jitter(size=4,alpha=0.2,width=0.4,height=0.25) + xlab("MPA Region") + ylab("log(Abundance)") + theme(axis.text.x = element_text(size=8,angle=15,hjust=0.8),axis.title.x=element_text(size=12),legend.position = "none",axis.title.y=element_text(size=12),axis.text.y=element_text(size=10)) + log_abundance_colours
+#mpa_vs_abundance
+
+season_vs_abundance <- P.ochra_categ_data %>% ggplot(aes(y = log(total), x=season_name, col=log(total))) + geom_jitter(size=4,alpha=0.25,width=0.4,height=0.35) + xlab("Season") + ylab("log(Abundance)") + theme(axis.text.x = element_text(size=12),axis.title.x=element_text(size=12),legend.position = "none",axis.title.y=element_text(size=12),axis.text.y=element_text(size=12)) + log_abundance_colours
+#season_vs_abundance
+
+site_vs_abundance <- P.ochra_categ_data %>% ggplot(aes(y = log(total), x=site_code, col=log(total))) + geom_jitter(size=4,alpha=0.25,width=0.4,height=0.35) + xlab("Site") + ylab("log(Abundance)") + theme(axis.text.x = element_blank(),axis.title.x=element_text(size=12),panel.grid.major = element_blank(), panel.grid.minor = element_blank(),legend.position = "none",axis.title.y=element_text(size=10),axis.text.y=element_text(size=12)) + log_abundance_colours
+#site_vs_abundance
+
+state_vs_abundance <- P.ochra_categ_data %>% ggplot(aes(y = log(total), x=state, col=log(total))) + geom_jitter(size=4,alpha=0.25,width=0.4,height=0.35) + xlab("State") + ylab("log(Abundance)") + theme(axis.text.x = element_text(size=10),axis.title.x=element_text(size=12),legend.position = "none",axis.title.y=element_text(size=12),axis.text.y=element_text(size=12)) + log_abundance_colours
+#state_vs_abundance
+```
+
+```{r}
+grid.arrange(groupcode_vs_abundance,method_vs_abundance,season_vs_abundance,nrow=3,top="(A) Sample Info Categorical Predictors")
+ggsave(filename = "../../results/Continuous_Outcome_Modeling_results/2A.SampleInfo_Cat.png",plot =grid.arrange(groupcode_vs_abundance,method_vs_abundance,season_vs_abundance,nrow=3,top="(A) Sample Info Categorical Predictors"), width = 5, height = 4)
+
+######################################################################################################
+
+grid.arrange(bioregion_vs_abundance,georegion_vs_abundance,state_vs_abundance,nrow=3,top="(B) Spatial Categorical Predictors Pt. I")
+ggsave(filename = "../../results/Continuous_Outcome_Modeling_results/2B.Spatial_I_Cat.png",plot =grid.arrange(bioregion_vs_abundance,georegion_vs_abundance,state_vs_abundance,nrow=3,top="(B) Spatial Categorical Predictors Pt. I"), width = 5, height = 4)
+
+######################################################################################################
+
+grid.arrange(island_vs_abundance,mpa_vs_abundance,site_vs_abundance,nrow=3,top="(C) Spatial Categorical Predictors Pt. II")
+ggsave(filename = "../../results/Continuous_Outcome_Modeling_results/2C.Spatial_II_Cat.png",plot =grid.arrange(island_vs_abundance,mpa_vs_abundance,site_vs_abundance,nrow=3,top="(C) Spatial Categorical Predictors Pt. II"), width = 5, height = 4)
+```
+
 
 ## Model Fitting
 Moving outcome of interest to the first column

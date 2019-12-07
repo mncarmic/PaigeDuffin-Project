@@ -1,0 +1,173 @@
+# Overview
+
+Title of project: Disease Outbreak Dictates Spatiotemporal Variation in Ochre Star Abundance on the US West Coast
+
+Author of project: Paige Duffin
+
+
+# Instructions
+
+Write your comments and feedback below for each section/compontent of the project. The goal should be to help the author improve their project. Make comments as constructive and actionable as possible. You can provide both criticism and praise.
+
+For each component, pick one summary statement by deleting the ones that do not apply and keeping only the one that you think most closely summarizes a given component. 
+
+Delete any sections/text of this template that are not part of your final review document.
+
+
+# Specific project content evaluation
+Evaluate the different parts of the project by filling in the sections below.
+
+
+## Background, Context and Motivation
+How well is the context of the project described? Is a comprehensive background, including summary of previous/related work given? Is the project well placed into the context of existing work (including proper referencing of existing work). Is it clear why the project was undertaken and what new information it hopes to provide?
+
+### Feedback and Comments
+
+I am not familiar with Sea Star Wasting Disease, but your introduction/background information was able to give me a full understanding of the topic and why understanding how disease outbreaks affect populations is important!
+
+### Summary assessment
+
+* strong contextualization and motivation
+
+
+## Question description
+How well and clear are the question(s)/hypotheses the project aims to address described? Is it clear how the questions relate to the data?
+
+
+### Feedback and Comments
+
+I apprecited the section titled questions to be addressed. It was clear and concise. 
+
+### Summary assessment
+
+* question/hypotheses fully clear
+
+
+## Data description
+How well is the data overall described? Is the source provided? Is a codebook or other meta-information available that makes it clear what the data is? 
+
+### Feedback and Comments
+
+The data and source are clearly described. I think it was nice how you gave a key for the 14 different factors. Only suggestion on this part is to maybe consider placing this into a table for visualization purposes. 
+
+### Summary assessment
+
+* source and overall structure of data well explained
+
+
+## Data wrangling and exploratory analysis
+How well is the data cleaned/processed and explored? Are all steps reasonable and well explained? Are alternatives discussed and considered? Are meaningful exploratory results shown (e.g. in the supplementary materials)?
+
+### Feedback and Comments
+
+Data is processed and cleaned very well and organized in "processing code" and "analysis code" Alternatives to analysis seem to be considered and changes made depending on which better fit desired result. 
+
+### Summary assessment
+
+* essentially no weaknesses in wrangling and exploratory component
+
+
+
+## Appropriateness of Analysis
+Were the analysis methods appropriate for the data? Was the analysis done properly? Were different components of the analysis (e.g. performance measure, variable selection, data pre-processing, model evaluation) done in the best way possible and explained well?
+
+### Feedback and Comments
+
+From what I can tell the appropiate analysis is done. 
+
+### Summary assessment
+*
+* strong and reasonable analysis
+
+## Presentation
+How well are results presented? Are tables and figures easy to read and understand? Are the main figures/tables publication level quality? 
+
+### Feedback and Comments
+
+The results are represented amazingly! The tables and figures are very visual and understandable! It would have been nice to view them as I read through the text document, but I understand there are quite a bit of them and would've caused the document to be extremely long. 
+
+### Summary assessment
+
+* results are very well presented
+
+
+## Discussion/Conclusions
+Are the study findings properly discussed? Are strengths and limitations acknowledged? Are findings interpreted properly?
+
+### Feedback and Comments
+
+Findings, strengths and limitations were fully explained and understandable. The organization was well done for this part as well. 
+
+### Summary assessment
+
+* strong, complete and clear discussion
+
+
+## Further comments
+
+_Add any other comments regarding the different aspects of the project here. Write anything you think can help your classmate improve their project._
+
+
+
+# Overall project content evaluation
+Evaluate overall features of the project  by filling in the sections below.
+
+
+## Structure
+Is the project well structured? Are files in well labeled folders? Do files have reasonable names? Are all "junk" files not needed for analysis/reproduction removed? By just looking at files and folders, can you get an idea of how things fit together?
+
+### Feedback and Comments
+
+The structure was well organized, again only suggestion would be to include tables and figures as they are discussed in the paper, but again, a matter of personal opinion. 
+
+### Summary assessment
+
+* well structured
+
+
+## Documentation 
+How well is the project documented? Are you able to understand each step of the whole analysis, each decision that was made, and each line of code? Is enough information provided as comments in code or as part of Rmd files? 
+
+### Feedback and Comments
+
+The project was well documented and there was an obvious strong attention to detail and reproducability! There are more than enough comments for her understanding, as well as for somebody new to the project. 
+
+### Summary assessment
+
+* fully and well documented
+
+
+
+## Reproducibility
+Are all results fully reproducible? Is documentation provided which clearly explains how to reproduce things, and does it work without the need for any manual intervention?
+
+### Feedback and Comments
+
+The project was reproducbile, I had no issue reproducing anything. 
+
+
+### Summary assessment
+
+* fully reproducible without issues
+
+
+## Thoroughness
+How thorough was the overall study? Were alternatives (e.g. different ways of processing the data or different models) considered? Were alternatives discussed? Were the questions/hypotheses fully and thoroughly addressed?
+
+### Feedback and Comments
+
+Hypotheses were fully evaluated and discussed in breakdown sections which were very helpful to bring my attention back to the main points. 
+
+### Summary assessment
+
+* strong level of thorougness
+
+
+## Further comments
+
+Great job! This was a great project and I can see the detail and work you put into it to make it easily reproducible for others! 
+
+
+
+
+
